@@ -1,0 +1,51 @@
+@using StudentOs.Blazor.Services
+
+<div class="space-y-4">
+    <div class="flex flex-wrap gap-3">
+        <button type="button"
+                @onclick="() => _mode = ChartMode.Week"
+                class="@(_mode == ChartMode.Week ? "ui-btn-primary" : "ui-btn-secondary")">
+            Po dnech
+        </button>
+
+        <button type="button"
+                @onclick="() => _mode = ChartMode.Subjects"
+                class="@(_mode == ChartMode.Subjects ? "ui-btn-primary" : "ui-btn-secondary")">
+            Podle předmětů
+        </button>
+    </div>
+
+    <StudyBarChart
+        Title="@ChartTitle"
+        Description="@ChartDescription"
+        Items="@ChartItems" />
+</div>
+
+@code {
+    [Parameter]
+    public List<ChartItemVm> WeeklySeries { get; set; } = new();
+
+    [Parameter]
+    public List<ChartItemVm> SubjectSeries { get; set; } = new();
+
+    private ChartMode _mode = ChartMode.Week;
+
+    private string ChartTitle =>
+        _mode == ChartMode.Week
+            ? "Studium za posledních 7 dní"
+            : "Studium podle předmětů";
+
+    private string ChartDescription =>
+        _mode == ChartMode.Week
+            ? "Přehled vytížení po dnech."
+            : "Přehled celkové investice času po předmětech.";
+
+    private List<ChartItemVm> ChartItems =>
+        _mode == ChartMode.Week ? WeeklySeries : SubjectSeries;
+
+    private enum ChartMode
+    {
+        Week,
+        Subjects
+    }
+}

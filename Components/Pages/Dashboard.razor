@@ -1,0 +1,133 @@
+@page "/"
+@using StudentOs.Blazor.Components.Shared
+@inject DashboardService DashboardService
+
+<PageTitle>Dashboard</PageTitle>
+
+@if (_vm is null)
+{
+    <div class="ui-card p-6">
+        <p class="ui-text-secondary">Načítám dashboard...</p>
+    </div>
+}
+else
+{
+    <div class="space-y-5">
+        <section class="ui-card p-6">
+            <p class="ui-eyebrow">Dashboard</p>
+            <h2 class="ui-page-title mt-2">Přehled dne</h2>
+        </section>
+
+        <section class="grid gap-4 md:grid-cols-3">
+            <div class="ui-card p-5">
+                <div class="flex items-center gap-3">
+                    <svg class="h-5 w-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M12 7v5l3 3"></path>
+                    </svg>
+                    <p class="ui-metric-label">Dnes odstudováno</p>
+                </div>
+                <p class="ui-metric-value mt-4">
+                    @FormatMinutes(_vm.TodayTotalMinutes)
+                </p>
+            </div>
+
+            <div class="ui-card p-5">
+                <div class="flex items-center gap-3">
+                    <svg class="h-5 w-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                        <path d="M16 2v4M8 2v4M3 10h18"></path>
+                    </svg>
+                    <p class="ui-metric-label">Týden celkem</p>
+                </div>
+                <p class="ui-metric-value mt-4">
+                    @FormatMinutes(_vm.WeekTotalMinutes)
+                </p>
+            </div>
+
+            <div class="ui-card p-5">
+                <div class="flex items-center gap-3">
+                    <svg class="h-5 w-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 10v6M2 10v6"></path>
+                        <path d="M6 12l6-3 6 3-6 3-6-3Z"></path>
+                        <path d="M6 12v4l6 3 6-3v-4"></path>
+                    </svg>
+                    <p class="ui-metric-label">Celkem</p>
+                </div>
+                <p class="ui-metric-value mt-4">
+                    @FormatMinutes(_vm.LifetimeMinutes)
+                </p>
+            </div>
+        </section>
+
+        <section class="grid items-start gap-5 xl:grid-cols-[260px,1fr]">
+            <div class="space-y-5">
+                <FocusTimer Subjects="_vm.Subjects" />
+                <GoalTracker TodayMinutes="_vm.TodayTotalMinutes" />
+                <HydrationTracker />
+            </div>
+
+            <div class="space-y-5">
+                <StudyBarChart
+                    Title="Studium za posledních 7 dní"
+                    Description="Přehled aktivity po dnech."
+                    Items="_vm.WeeklySeries" />
+
+                <div class="ui-card p-6">
+                    <div class="mb-4 flex items-center justify-between">
+                        <h3 class="ui-section-title">Dnešní termíny</h3>
+                    </div>
+
+                    @if (_vm.TodayExams.Count == 0)
+                    {
+                        <p class="ui-text-secondary">Dnes nemáš žádný aktivní termín.</p>
+                    }
+                    else
+                    {
+                        <div class="space-y-3">
+                            @foreach (var exam in _vm.TodayExams)
+                            {
+                                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                                    <div class="flex items-center gap-4">
+                                        <div class="h-11 w-1.5 rounded-full"
+                                             style="background-color:@(exam.Subject?.Color ?? "#6366f1")"></div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-lg font-semibold">
+                                                @(exam.Subject?.Name ?? "Bez předmětu")
+                                            </p>
+                                            <p class="ui-text-secondary">
+                                                @exam.Date.ToString("g", _cs) · @exam.Duration min
+                                            </p>
+                                        </div>
+                                        <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                            @(exam.Type == "confirmed" ? "Potvrzeno" : "Možné")
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <QuickNotes />
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    private DashboardVm? _vm;
+    private readonly System.Globalization.CultureInfo _cs = new("cs-CZ");
+
+    protected override async Task OnInitializedAsync()
+    {
+        _vm = await DashboardService.GetDashboardAsync();
+    }
+
+    private static string FormatMinutes(int totalMinutes)
+    {
+        var hours = totalMinutes / 60;
+        var minutes = totalMinutes % 60;
+        return $"{hours}h {minutes}m";
+    }
+}

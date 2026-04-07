@@ -1,0 +1,382 @@
+@page "/planner"
+@using System.ComponentModel.DataAnnotations
+@using System.Globalization
+@inject SubjectService SubjectService
+@inject ExamService ExamService
+@inject NavigationManager Navigation
+
+<PageTitle>Planner</PageTitle>
+
+<div class="w-full space-y-5">
+    <section class="ui-card p-6">
+        <p class="ui-eyebrow">Planner</p>
+        <h2 class="ui-page-title mt-2">Správa zkoušek a termínů</h2>
+    </section>
+
+    <div class="grid items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+        <div class="ui-card h-fit p-6">
+            <div class="mb-6">
+                <h3 class="ui-section-title">@(_isEditing ? "Upravit termín" : "Přidat nový termín")</h3>
+            </div>
+
+            <EditForm Model="_form" OnValidSubmit="SaveAsync" class="space-y-4">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="ui-text-secondary" />
+
+                <div>
+                    <label class="ui-label">Předmět</label>
+                    <InputSelect @bind-Value="_form.SubjectId" class="ui-select">
+                        <option value="">Vyber předmět</option>
+                        @foreach (var subject in _subjects)
+                        {
+                            <option value="@subject.Id">@subject.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => _form.SubjectId)" />
+                </div>
+
+                <div>
+                    <label class="ui-label">Datum a čas</label>
+                    <input type="datetime-local"
+                           value="@DateLocalValue"
+                           @onchange="OnDateChanged"
+                           class="ui-input" />
+                    @if (!string.IsNullOrWhiteSpace(_dateError))
+                    {
+                        <p class="mt-2 text-sm font-medium text-rose-500">@_dateError</p>
+                    }
+                </div>
+
+                <div>
+                    <label class="ui-label">Typ termínu</label>
+                    <InputSelect @bind-Value="_form.Type" class="ui-select">
+                        <option value="confirmed">Potvrzený</option>
+                        <option value="potential">Možný</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => _form.Type)" />
+                </div>
+
+                <div>
+                    <label class="ui-label">Délka (min)</label>
+                    <InputNumber @bind-Value="_form.Duration" class="ui-input" />
+                    <ValidationMessage For="@(() => _form.Duration)" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_message))
+                {
+                    <p class="@(_messageSuccess
+                        ? "rounded-2xl bg-emerald-900/20 px-4 py-3 text-sm text-emerald-300"
+                        : "rounded-2xl bg-rose-900/20 px-4 py-3 text-sm text-rose-300")">
+                        @_message
+                    </p>
+                }
+
+                <div class="flex gap-3">
+                    <button type="submit" class="ui-btn-primary">
+                        @(_isEditing ? "Uložit změny" : "Přidat termín")
+                    </button>
+
+                    @if (_isEditing)
+                    {
+                        <button type="button" class="ui-btn-secondary" @onclick="CancelEdit">
+                            Zrušit editaci
+                        </button>
+                    }
+                </div>
+            </EditForm>
+        </div>
+
+        <div class="min-w-0">
+            <div class="ui-card w-full p-6">
+                <div class="mb-5">
+                    <h3 class="ui-section-title">Tabulka termínů</h3>
+                </div>
+
+                @if (_exams.Count == 0)
+                {
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-10 text-center text-slate-600 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-400">
+                        Zatím nejsou žádné termíny.
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-3">
+                        @foreach (var exam in _exams)
+                        {
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/60">
+                                <div class="grid gap-4 md:grid-cols-[minmax(160px,1fr)_auto_64px_120px] md:items-center">
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-3">
+                                            <span class="h-3 w-3 shrink-0 rounded-full"
+                                                  style="background-color:@(exam.Subject?.Color ?? "#6366f1")"></span>
+                                            <span class="truncate text-base font-semibold text-slate-800 dark:text-slate-100">
+                                                @(exam.Subject?.Name ?? "Bez předmětu")
+                                            </span>
+                                        </div>
+
+                                        <div class="mt-2 pl-6 text-sm leading-5 text-slate-500 dark:text-slate-400">
+                                            <div>@FormatDate(exam.Date)</div>
+                                            <div>@FormatTime(exam.Date)</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                            @(exam.Type == "confirmed" ? "Potvrzeno" : "Možný")
+                                        </span>
+
+                                        <span class="ui-badge @(exam.IsDone
+                                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300")">
+                                            @(exam.IsDone ? "Hotovo" : "Aktivní")
+                                        </span>
+                                    </div>
+
+                                    <div class="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        @exam.Duration min
+                                    </div>
+
+                                    <div class="flex flex-col gap-2">
+                                        <button class="ui-btn-small ui-btn-secondary w-full" @onclick="() => StartEdit(exam.Id)">
+                                            Upravit
+                                        </button>
+
+                                        <button class="ui-btn-small ui-btn-secondary w-full" @onclick="() => ToggleAsync(exam.Id)">
+                                            Přepnout stav
+                                        </button>
+
+                                        <button class="ui-btn-danger w-full" @onclick="() => DeleteAsync(exam.Id)">
+                                            Smazat
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "edit")]
+    public int? Edit { get; set; }
+
+    private readonly PlannerExamFormModel _form = new();
+    private readonly CultureInfo _cs = new("cs-CZ");
+
+    private List<Subject> _subjects = new();
+    private List<Exam> _exams = new();
+
+    private bool _isEditing;
+    private string? _message;
+    private bool _messageSuccess;
+    private string? _dateError;
+
+    private string DateLocalValue => _form.Date.ToString("yyyy-MM-ddTHH:mm");
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ReloadAsync();
+        ApplyEditState();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _subjects = await SubjectService.GetAllAsync();
+        _exams = await ExamService.GetAllAsync();
+    }
+
+    private void ApplyEditState()
+    {
+        _message = null;
+        _dateError = null;
+
+        if (Edit is null || Edit <= 0)
+        {
+            ResetForm();
+            return;
+        }
+
+        var entity = _exams.FirstOrDefault(x => x.Id == Edit.Value);
+        if (entity is null)
+        {
+            ResetForm();
+            return;
+        }
+
+        _isEditing = true;
+        _form.Id = entity.Id;
+        _form.SubjectId = entity.SubjectId;
+        _form.Date = entity.Date;
+        _form.Type = entity.Type;
+        _form.Duration = entity.Duration;
+        _form.IsDone = entity.IsDone;
+    }
+
+
+
+    private async Task SaveAsync()
+    {
+        _dateError = null;
+
+        if (_form.SubjectId is null or <= 0)
+        {
+            _message = "Vyber předmět.";
+            _messageSuccess = false;
+            return;
+        }
+
+        if (_form.Date == default)
+        {
+            _dateError = "Vyber datum a čas.";
+            _message = "Formulář obsahuje chyby.";
+            _messageSuccess = false;
+            return;
+        }
+
+        if (_form.Type is not ("confirmed" or "potential"))
+        {
+            _message = "Typ termínu není platný.";
+            _messageSuccess = false;
+            return;
+        }
+
+        if (_form.Duration < 15 || _form.Duration > 480)
+        {
+            _message = "Délka musí být v rozsahu 15 až 480 minut.";
+            _messageSuccess = false;
+            return;
+        }
+
+        var exam = new Exam
+        {
+            Id = _form.Id ?? 0,
+            SubjectId = _form.SubjectId,
+            Date = _form.Date,
+            Type = _form.Type,
+            Duration = _form.Duration,
+            IsDone = _form.IsDone
+        };
+
+        if (_isEditing && _form.Id is not null)
+        {
+            await ExamService.UpdateAsync(exam);
+            _message = "Termín byl upraven.";
+            _messageSuccess = true;
+
+            await ReloadAsync();
+            Navigation.NavigateTo("/planner", forceLoad: false);
+            ResetForm(keepMessage: true);
+            return;
+        }
+
+        await ExamService.AddAsync(exam);
+        _message = "Termín byl přidán.";
+        _messageSuccess = true;
+
+        await ReloadAsync();
+        ResetForm(keepMessage: true);
+    }
+
+    private async Task ToggleAsync(int id)
+    {
+        await ExamService.ToggleAsync(id);
+        await ReloadAsync();
+        ApplyEditState();
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        await ExamService.DeleteAsync(id);
+        await ReloadAsync();
+
+        if (Edit == id)
+        {
+            Navigation.NavigateTo("/planner", forceLoad: false);
+            ResetForm();
+            return;
+        }
+
+        ApplyEditState();
+    }
+
+    private void StartEdit(int id)
+    {
+        Navigation.NavigateTo($"/planner?edit={id}", forceLoad: false);
+    }
+
+    private void CancelEdit()
+    {
+        Navigation.NavigateTo("/planner", forceLoad: false);
+        ResetForm();
+    }
+
+    private void OnDateChanged(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            _form.Date = default;
+            return;
+        }
+
+        if (DateTime.TryParse(raw, out var parsed))
+        {
+            _form.Date = parsed;
+            _dateError = null;
+        }
+        else
+        {
+            _form.Date = default;
+            _dateError = "Datum a čas nejsou platné.";
+        }
+    }
+
+    private void ResetForm(bool keepMessage = false)
+    {
+        _isEditing = false;
+
+        _form.Id = null;
+        _form.SubjectId = null;
+        _form.Date = DateTime.Now.AddDays(1);
+        _form.Type = "confirmed";
+        _form.Duration = 90;
+        _form.IsDone = false;
+
+        _dateError = null;
+
+        if (!keepMessage)
+        {
+            _message = null;
+            _messageSuccess = false;
+        }
+    }
+
+ 
+
+    private string FormatDate(DateTime date) => date.ToString("d. M. yyyy", _cs);
+
+    private string FormatTime(DateTime date) => date.ToString("HH:mm", _cs);
+
+    private sealed class PlannerExamFormModel
+    {
+        public int? Id { get; set; }
+
+        [Required(ErrorMessage = "Vyber předmět.")]
+        public int? SubjectId { get; set; }
+
+        public DateTime Date { get; set; } = DateTime.Now.AddDays(1);
+
+        [Required(ErrorMessage = "Vyber typ termínu.")]
+        public string Type { get; set; } = "confirmed";
+
+        [Range(15, 480, ErrorMessage = "Délka musí být v rozsahu 15 až 480 minut.")]
+        public int Duration { get; set; } = 90;
+
+        public bool IsDone { get; set; }
+    }
+}

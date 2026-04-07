@@ -1,0 +1,170 @@
+@inject BrowserStorageService Storage
+
+@if (_loaded)
+{
+    <div class="ui-card p-5">
+        <div class="mb-4 flex items-start justify-between">
+            <div class="flex items-center gap-2">
+                <svg class="h-5 w-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="6"></circle>
+                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+                </svg>
+                <h3 class="ui-card-title">Denní progress</h3>
+            </div>
+
+            <button @onclick="() => _showSettings = !_showSettings"
+                    class="text-slate-400 transition-colors hover:text-indigo-400"
+                    title="Nastavení cílů">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 1-2 0 1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 1 0-2 1.65 1.65 0 0 0 .6-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 1 2 0 1.65 1.65 0 0 0 1 .6 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.24.37.4.79.4 1s-.16.63-.4 1Z"></path>
+                </svg>
+            </button>
+        </div>
+
+        @if (_showSettings)
+        {
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+                <div class="space-y-4">
+                    <div>
+                        <label class="ui-label">Denní cíl (hodiny)</label>
+                        <input type="number" min="1" max="24"
+                               @bind="_goalHours"
+                               class="ui-input" />
+                    </div>
+
+                    <div>
+                        <label class="ui-label">1 kredit za (minut)</label>
+                        <input type="number" min="5" max="600"
+                               @bind="_minutesPerCredit"
+                               class="ui-input" />
+                    </div>
+
+                    <button @onclick="SaveSettingsAsync" class="ui-btn-primary w-full">
+                        Uložit
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="mb-4 flex items-end justify-between">
+                <div>
+                    <p class="ui-text-helper">Dnes</p>
+                    <p class="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                        @Hours h @Minutes m
+                    </p>
+                </div>
+
+                <div class="text-right">
+                    <p class="ui-text-helper">Cíl</p>
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
+                        @_goalHours h
+                    </p>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <div class="h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                    <div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+                         style="width:@($"{ProgressPercent}%")">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="flex min-h-[162px] flex-col justify-between rounded-xl border border-amber-200/70 bg-amber-50/70 p-4 dark:border-amber-900/40 dark:bg-amber-900/10">
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                            Kredity
+                        </p>
+                        <p class="mt-2 text-3xl font-bold tracking-tight text-amber-800 dark:text-amber-200">
+                            @Credits
+                        </p>
+                    </div>
+
+                    <p class="text-sm leading-5 text-amber-700/80 dark:text-amber-300/80">
+                        Dnešní odměny
+                    </p>
+                </div>
+
+                <div class="flex min-h-[162px] flex-col justify-between rounded-xl border border-indigo-200/70 bg-indigo-50/70 p-4 dark:border-indigo-900/40 dark:bg-indigo-900/10">
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+                            Další za
+                        </p>
+
+                        <div class="mt-2 flex items-baseline gap-1 whitespace-nowrap">
+                            <span class="text-3xl font-bold tracking-tight text-indigo-800 dark:text-indigo-200">
+                                @MinutesToNext
+                            </span>
+                            <span class="text-lg font-semibold text-indigo-700 dark:text-indigo-300">
+                                m
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="text-sm leading-5 text-indigo-700/80 dark:text-indigo-300/80">
+                        Do dalšího kreditu
+                    </p>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int TodayMinutes { get; set; }
+
+    private double _goalHours = 4;
+    private int _minutesPerCredit = 45;
+    private bool _showSettings;
+    private bool _loaded;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var savedGoal = await Storage.GetStringAsync("userGoalHours");
+        var savedRatio = await Storage.GetStringAsync("userRewardRatio");
+
+        if (double.TryParse(savedGoal, out var goal))
+            _goalHours = goal;
+
+        if (int.TryParse(savedRatio, out var ratio))
+            _minutesPerCredit = ratio;
+
+        _loaded = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        await Storage.SetStringAsync("userGoalHours", _goalHours.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        await Storage.SetStringAsync("userRewardRatio", _minutesPerCredit.ToString());
+        _showSettings = false;
+    }
+
+    private int GoalMinutes => (int)(_goalHours * 60);
+    private double ProgressPercent => Math.Min(GoalMinutes == 0 ? 0 : (TodayMinutes / (double)GoalMinutes) * 100, 100);
+    private int Credits => _minutesPerCredit <= 0 ? 0 : TodayMinutes / _minutesPerCredit;
+    private int MinutesToNext
+    {
+        get
+        {
+            if (_minutesPerCredit <= 0)
+                return 0;
+
+            if (TodayMinutes == 0)
+                return _minutesPerCredit;
+
+            var remainder = TodayMinutes % _minutesPerCredit;
+            return remainder == 0 ? 0 : _minutesPerCredit - remainder;
+        }
+    }
+
+    private int Hours => TodayMinutes / 60;
+    private int Minutes => TodayMinutes % 60;
+}

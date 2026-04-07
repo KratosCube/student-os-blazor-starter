@@ -1,0 +1,497 @@
+@page "/subjects"
+@using System.ComponentModel.DataAnnotations
+@inject SubjectService SubjectService
+@inject StudySessionService StudySessionService
+@inject NavigationManager Navigation
+
+<PageTitle>Subjects</PageTitle>
+
+@if (!_loaded)
+{
+    <div class="ui-card p-6">
+        <p class="ui-text-secondary">Načítám předměty...</p>
+    </div>
+}
+else
+{
+    <div class="space-y-5">
+        <section class="ui-card p-6">
+            <p class="ui-eyebrow">Subjects</p>
+            <h2 class="ui-page-title mt-2">Předměty a studijní historie</h2>
+        </section>
+
+        <div class="grid items-start gap-6 xl:grid-cols-2">
+            <div class="ui-card h-fit p-6">
+                <h3 class="ui-section-title">@(_isEditing ? "Upravit předmět" : "Přidat předmět")</h3>
+
+                <EditForm Model="_subjectForm" OnValidSubmit="SaveSubjectAsync" class="mt-6 space-y-4">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="ui-text-secondary" />
+
+                    <div>
+                        <label class="ui-label">Název</label>
+                        <InputText @bind-Value="_subjectForm.Name"
+                                   class="ui-input"
+                                   placeholder="Např. Algoritmy" />
+                        <ValidationMessage For="@(() => _subjectForm.Name)" />
+                    </div>
+
+                    <div>
+                        <label class="ui-label">Barva</label>
+                        <div class="flex flex-wrap gap-3">
+                            @foreach (var color in _colors)
+                            {
+                                <label class="cursor-pointer">
+                                    <input type="radio"
+                                           class="sr-only"
+                                           name="subject-color"
+                                           checked="@(_subjectForm.Color == color)"
+                                           @onchange="() => _subjectForm.Color = color" />
+                                    <span class="block h-10 w-10 rounded-full border-4 border-white shadow ring-1 ring-slate-300 dark:ring-slate-700"
+                                          style="background-color:@color"></span>
+                                </label>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(_subjectColorError))
+                        {
+                            <p class="mt-2 text-sm font-medium text-rose-500">@_subjectColorError</p>
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(_subjectMessage))
+                    {
+                        <p class="@(_subjectMessageSuccess
+                            ? "rounded-2xl bg-emerald-900/20 px-4 py-3 text-sm text-emerald-300"
+                            : "rounded-2xl bg-rose-900/20 px-4 py-3 text-sm text-rose-300")">
+                            @_subjectMessage
+                        </p>
+                    }
+
+                    <div class="flex gap-3">
+                        <button type="submit" class="ui-btn-primary">
+                            @(_isEditing ? "Uložit změny" : "Přidat předmět")
+                        </button>
+
+                        @if (_isEditing)
+                        {
+                            <button type="button" class="ui-btn-secondary" @onclick="CancelEdit">
+                                Zrušit editaci
+                            </button>
+                        }
+                    </div>
+                </EditForm>
+            </div>
+
+            <div class="ui-card h-fit p-6">
+                <h3 class="ui-section-title">Ruční záznam studia</h3>
+
+                <EditForm Model="_sessionForm" OnValidSubmit="SaveSessionAsync" class="mt-6 space-y-4">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="ui-text-secondary" />
+
+                    <div>
+                        <label class="ui-label">Předmět</label>
+                        <InputSelect @bind-Value="_sessionForm.SubjectId" class="ui-select">
+                            <option value="">Vyber předmět</option>
+                            @foreach (var subject in _subjects)
+                            {
+                                <option value="@subject.Id">@subject.Name</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => _sessionForm.SubjectId)" />
+                    </div>
+
+                    <div>
+                        <label class="ui-label">Délka (min)</label>
+                        <InputNumber @bind-Value="_sessionForm.Duration" class="ui-input" />
+                        <ValidationMessage For="@(() => _sessionForm.Duration)" />
+                    </div>
+
+                    <div>
+                        <label class="ui-label">Datum</label>
+                        <input type="date"
+                               value="@_sessionDatePart"
+                               @onchange="OnSessionDateChanged"
+                               class="ui-input" />
+                    </div>
+
+                    <div>
+                        <label class="ui-label">Čas</label>
+                        <input type="time"
+                               step="60"
+                               value="@_sessionTimePart"
+                               @onchange="OnSessionTimeChanged"
+                               class="ui-input" />
+
+                        @if (!string.IsNullOrWhiteSpace(_sessionDateError))
+                        {
+                            <p class="mt-2 text-sm font-medium text-rose-500">@_sessionDateError</p>
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(_sessionMessage))
+                    {
+                        <p class="@(_sessionMessageSuccess
+                            ? "rounded-2xl bg-emerald-900/20 px-4 py-3 text-sm text-emerald-300"
+                            : "rounded-2xl bg-rose-900/20 px-4 py-3 text-sm text-rose-300")">
+                            @_sessionMessage
+                        </p>
+                    }
+
+                    <button type="submit" class="ui-btn-primary">
+                        Uložit session
+                    </button>
+                </EditForm>
+            </div>
+        </div>
+
+        <div class="ui-card p-6">
+            <div class="mb-6">
+                <h3 class="ui-section-title">Hierarchický přehled dat</h3>
+            </div>
+
+            <div class="space-y-4">
+                @if (_subjects.Count == 0)
+                {
+                    <p class="ui-text-secondary">Nejprve přidej alespoň jeden předmět.</p>
+                }
+                else
+                {
+                    @foreach (var subject in _subjects)
+                    {
+                        <details class="rounded-2xl border border-slate-200 p-4 dark:border-slate-800" open>
+                            <summary class="cursor-pointer list-none">
+                                <div class="flex flex-wrap items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3">
+                                        <span class="h-4 w-4 rounded-full" style="background-color:@subject.Color"></span>
+                                        <div>
+                                            <p class="font-semibold">@subject.Name</p>
+                                            <p class="ui-text-secondary">
+                                                @subject.Exams.Count termínů · @subject.Sessions.Count session
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-2">
+                                        <button class="ui-btn-small ui-btn-secondary" @onclick="() => StartEdit(subject.Id)">
+                                            Upravit
+                                        </button>
+
+                                        <button class="ui-btn-danger" @onclick="() => DeleteSubjectAsync(subject.Id)">
+                                            Smazat
+                                        </button>
+                                    </div>
+                                </div>
+                            </summary>
+
+                            <div class="mt-4 grid gap-4 xl:grid-cols-2">
+                                <div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
+                                    <p class="mb-3 text-sm font-semibold">Termíny</p>
+                                    <div class="space-y-2 text-sm">
+                                        @if (subject.Exams.Count == 0)
+                                        {
+                                            <p class="ui-text-secondary">Žádné termíny</p>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var exam in subject.Exams)
+                                            {
+                                                <div class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                                                    <p class="font-medium">
+                                                        @exam.Date.ToString("dd.MM.yyyy H:mm", _cs)
+                                                    </p>
+                                                    <p class="ui-text-secondary">
+                                                        @exam.Duration min · @(exam.Type == "confirmed" ? "Potvrzený" : "Možný") · @(exam.IsDone ? "Hotovo" : "Aktivní")
+                                                    </p>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-950">
+                                    <p class="mb-3 text-sm font-semibold">Studijní session</p>
+                                    <div class="space-y-2 text-sm">
+                                        @if (subject.Sessions.Count == 0)
+                                        {
+                                            <p class="ui-text-secondary">Žádné session</p>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var session in subject.Sessions.Take(10))
+                                            {
+                                                <div class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                                                    <p class="font-medium">
+                                                        @session.CreatedAt.ToString("dd.MM.yyyy H:mm", _cs)
+                                                    </p>
+                                                    <p class="ui-text-secondary">
+                                                        @session.Duration minut
+                                                    </p>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "edit")]
+    public int? Edit { get; set; }
+
+    private readonly SubjectFormModel _subjectForm = new();
+    private readonly SessionFormModel _sessionForm = new();
+
+    private readonly string[] _colors =
+    [
+        "#6366f1",
+        "#f43f5e",
+        "#10b981",
+        "#0ea5e9",
+        "#f59e0b",
+        "#8b5cf6"
+    ];
+
+    private readonly CultureInfo _cs = new("cs-CZ");
+
+    private List<Subject> _subjects = new();
+
+    private bool _loaded;
+    private bool _isEditing;
+
+    private string? _subjectMessage;
+    private bool _subjectMessageSuccess;
+    private string? _subjectColorError;
+
+    private string? _sessionMessage;
+    private bool _sessionMessageSuccess;
+    private string? _sessionDateError;
+
+    private string _sessionDatePart = DateTime.Now.ToString("yyyy-MM-dd");
+    private string _sessionTimePart = DateTime.Now.ToString("HH:mm");
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ReloadAsync();
+        ApplyEditState();
+        _loaded = true;
+    }
+
+    private async Task ReloadAsync()
+    {
+        _subjects = await SubjectService.GetAllAsync();
+    }
+
+    private void ApplyEditState()
+    {
+        _subjectMessage = null;
+        _subjectColorError = null;
+
+        if (Edit is null || Edit <= 0)
+        {
+            ResetSubjectForm();
+            return;
+        }
+
+        var subject = _subjects.FirstOrDefault(x => x.Id == Edit.Value);
+        if (subject is null)
+        {
+            ResetSubjectForm();
+            return;
+        }
+
+        _isEditing = true;
+        _subjectForm.Id = subject.Id;
+        _subjectForm.Name = subject.Name;
+        _subjectForm.Color = subject.Color;
+    }
+
+    private async Task SaveSubjectAsync()
+    {
+        _subjectColorError = null;
+
+        if (string.IsNullOrWhiteSpace(_subjectForm.Color) || !_colors.Contains(_subjectForm.Color))
+        {
+            _subjectColorError = "Vyber validní barvu.";
+            _subjectMessage = "Formulář obsahuje chyby.";
+            _subjectMessageSuccess = false;
+            return;
+        }
+
+        var model = new Subject
+        {
+            Id = _subjectForm.Id ?? 0,
+            Name = _subjectForm.Name.Trim(),
+            Color = _subjectForm.Color
+        };
+
+        if (_isEditing && _subjectForm.Id is not null)
+        {
+            await SubjectService.UpdateAsync(model);
+            _subjectMessage = "Předmět byl upraven.";
+            _subjectMessageSuccess = true;
+
+            await ReloadAsync();
+            Navigation.NavigateTo("/subjects", forceLoad: false);
+            ResetSubjectForm(keepMessage: true);
+            return;
+        }
+
+        await SubjectService.AddAsync(model);
+        _subjectMessage = "Předmět byl vytvořen.";
+        _subjectMessageSuccess = true;
+
+        await ReloadAsync();
+        ResetSubjectForm(keepMessage: true);
+    }
+
+    private async Task SaveSessionAsync()
+    {
+        _sessionDateError = null;
+
+        if (_sessionForm.SubjectId is null or <= 0)
+        {
+            _sessionMessage = "Vyber předmět.";
+            _sessionMessageSuccess = false;
+            return;
+        }
+
+        if (_sessionForm.Duration < 5 || _sessionForm.Duration > 600)
+        {
+            _sessionMessage = "Délka musí být v rozsahu 5 až 600 minut.";
+            _sessionMessageSuccess = false;
+            return;
+        }
+
+        if (!TryBuildSessionDateTime(out var createdAt))
+        {
+            _sessionDateError = "Datum a čas nejsou platné.";
+            _sessionMessage = "Formulář obsahuje chyby.";
+            _sessionMessageSuccess = false;
+            return;
+        }
+
+        await StudySessionService.AddAsync(new StudySession
+        {
+            SubjectId = _sessionForm.SubjectId.Value,
+            Duration = _sessionForm.Duration,
+            CreatedAt = createdAt
+        });
+
+        _sessionMessage = "Studijní session byla uložena.";
+        _sessionMessageSuccess = true;
+
+        await ReloadAsync();
+        ResetSessionForm(keepMessage: true);
+    }
+
+    private async Task DeleteSubjectAsync(int id)
+    {
+        await SubjectService.DeleteAsync(id);
+        await ReloadAsync();
+
+        if (Edit == id)
+        {
+            Navigation.NavigateTo("/subjects", forceLoad: false);
+            ResetSubjectForm();
+            return;
+        }
+
+        ApplyEditState();
+    }
+
+    private void StartEdit(int id)
+    {
+        Navigation.NavigateTo($"/subjects?edit={id}", forceLoad: false);
+    }
+
+    private void CancelEdit()
+    {
+        Navigation.NavigateTo("/subjects", forceLoad: false);
+        ResetSubjectForm();
+    }
+
+    private void OnSessionDateChanged(ChangeEventArgs e)
+    {
+        _sessionDatePart = e.Value?.ToString() ?? string.Empty;
+        _sessionDateError = null;
+    }
+
+    private void OnSessionTimeChanged(ChangeEventArgs e)
+    {
+        _sessionTimePart = e.Value?.ToString() ?? string.Empty;
+        _sessionDateError = null;
+    }
+
+    private bool TryBuildSessionDateTime(out DateTime createdAt)
+    {
+        createdAt = default;
+
+        if (string.IsNullOrWhiteSpace(_sessionDatePart) || string.IsNullOrWhiteSpace(_sessionTimePart))
+            return false;
+
+        return DateTime.TryParse($"{_sessionDatePart}T{_sessionTimePart}", out createdAt);
+    }
+
+    private void ResetSubjectForm(bool keepMessage = false)
+    {
+        _isEditing = false;
+
+        _subjectForm.Id = null;
+        _subjectForm.Name = string.Empty;
+        _subjectForm.Color = "#6366f1";
+
+        _subjectColorError = null;
+
+        if (!keepMessage)
+        {
+            _subjectMessage = null;
+            _subjectMessageSuccess = false;
+        }
+    }
+
+    private void ResetSessionForm(bool keepMessage = false)
+    {
+        _sessionForm.SubjectId = null;
+        _sessionForm.Duration = 45;
+        _sessionDatePart = DateTime.Now.ToString("yyyy-MM-dd");
+        _sessionTimePart = DateTime.Now.ToString("HH:mm");
+        _sessionDateError = null;
+
+        if (!keepMessage)
+        {
+            _sessionMessage = null;
+            _sessionMessageSuccess = false;
+        }
+    }
+
+    private sealed class SubjectFormModel
+    {
+        public int? Id { get; set; }
+
+        [Required(ErrorMessage = "Název je povinný.")]
+        [MinLength(2, ErrorMessage = "Název předmětu musí mít alespoň 2 znaky.")]
+        [MaxLength(50, ErrorMessage = "Název předmětu je příliš dlouhý.")]
+        public string Name { get; set; } = string.Empty;
+
+        public string Color { get; set; } = "#6366f1";
+    }
+
+    private sealed class SessionFormModel
+    {
+        [Required(ErrorMessage = "Vyber předmět.")]
+        public int? SubjectId { get; set; }
+
+        [Range(5, 600, ErrorMessage = "Délka musí být v rozsahu 5 až 600 minut.")]
+        public int Duration { get; set; } = 45;
+    }
+}

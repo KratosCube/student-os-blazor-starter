@@ -1,0 +1,52 @@
+@using StudentOs.Blazor.Services
+
+<div class="ui-card p-6">
+    <div class="mb-5">
+        <h3 class="ui-section-title">@Title</h3>
+        @if (!string.IsNullOrWhiteSpace(Description))
+        {
+            <p class="ui-text-secondary mt-2">@Description</p>
+        }
+    </div>
+
+    <div class="overflow-hidden rounded-xl bg-slate-100 px-4 py-5 dark:bg-slate-950">
+        <div class="grid items-end gap-3" style="@GridStyle">
+            @foreach (var item in Items)
+            {
+                var heightPercent = MaxValue == 0 ? 0 : (item.Value / (double)MaxValue) * 100;
+                var finalHeight = Math.Max(heightPercent, item.Value > 0 ? 8 : 0);
+
+                <div class="min-w-0">
+                    <div class="mb-3 text-center text-xs font-medium text-slate-500 dark:text-slate-300">
+                        @item.Value min
+                    </div>
+
+                    <div class="flex h-[210px] items-end justify-center">
+                        <div class="w-full max-w-[50px] rounded-t-xl transition-all duration-500"
+                             style="height:@($"{finalHeight}%"); background-color:@(item.Color ?? "#6366f1")">
+                        </div>
+                    </div>
+
+                    <div class="mt-3 truncate text-center text-sm font-medium text-slate-700 dark:text-slate-200">
+                        @item.Label
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public List<ChartItemVm> Items { get; set; } = new();
+
+    private int MaxValue => Math.Max(Items.Count == 0 ? 0 : Items.Max(x => x.Value), 1);
+
+    private string GridStyle => $"grid-template-columns: repeat({Math.Max(Items.Count, 1)}, minmax(0, 1fr));";
+}

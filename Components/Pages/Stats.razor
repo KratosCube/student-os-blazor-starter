@@ -1,0 +1,64 @@
+@page "/stats"
+@using StudentOs.Blazor.Components.Shared
+@inject DashboardService DashboardService
+
+<PageTitle>Stats</PageTitle>
+
+@if (_vm is null)
+{
+    <div class="ui-card p-6">
+        <p class="ui-text-secondary">Načítám statistiky...</p>
+    </div>
+}
+else
+{
+    <div class="space-y-5">
+        <section class="ui-card p-6">
+            <p class="ui-eyebrow">Stats</p>
+            <h2 class="ui-page-title mt-2">Statistiky a odměny</h2>
+        </section>
+
+        <section class="grid gap-4 md:grid-cols-3">
+            <div class="ui-card p-5">
+                <p class="ui-metric-label">Týden celkem</p>
+                <p class="ui-metric-value mt-3">
+                    @FormatMinutes(_vm.WeekTotalMinutes)
+                </p>
+            </div>
+
+            <div class="ui-card p-5">
+                <p class="ui-metric-label">Celkem odstudováno</p>
+                <p class="ui-metric-value mt-3">
+                    @FormatMinutes(_vm.LifetimeMinutes)
+                </p>
+            </div>
+
+            <div class="ui-card p-5">
+                <p class="ui-metric-label">Kredity</p>
+                <p class="ui-metric-value mt-3">@_vm.TotalLifetimeCredits</p>
+            </div>
+        </section>
+
+        <StudyChartSwitcher
+            WeeklySeries="_vm.WeeklySeries"
+            SubjectSeries="_vm.SubjectSeries" />
+
+        <RewardShop TotalLifetimeCredits="_vm.TotalLifetimeCredits" />
+    </div>
+}
+
+@code {
+    private DashboardVm? _vm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _vm = await DashboardService.GetDashboardAsync();
+    }
+
+    private static string FormatMinutes(int totalMinutes)
+    {
+        var hours = totalMinutes / 60;
+        var minutes = totalMinutes % 60;
+        return $"{hours}h {minutes}m";
+    }
+}

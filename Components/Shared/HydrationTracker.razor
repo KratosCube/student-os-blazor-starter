@@ -1,0 +1,244 @@
+@implements IDisposable
+@inject BrowserStorageService Storage
+
+<div class="ui-card p-5">
+    <div class="mb-4 flex items-start justify-between">
+        <div class="flex items-center gap-2">
+            <svg class="h-5 w-5 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2.7C12 2.7 6 9.2 6 13a6 6 0 0 0 12 0c0-3.8-6-10.3-6-10.3Z"></path>
+            </svg>
+            <h3 class="ui-card-title">Voda</h3>
+        </div>
+
+        <button @onclick="() => _showSettings = !_showSettings"
+                class="text-slate-400 transition-colors hover:text-sky-500 dark:hover:text-sky-400"
+                title="Nastavení pitného režimu">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 1-2 0 1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 1 0-2 1.65 1.65 0 0 0 .6-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 1 2 0 1.65 1.65 0 0 0 1 .6 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.24.37.4.79.4 1s-.16.63-.4 1Z"></path>
+            </svg>
+        </button>
+    </div>
+
+    @if (_showSettings)
+    {
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+            <div class="space-y-4">
+                <div>
+                    <label class="ui-label">Interval (minuty)</label>
+                    <input type="number" min="5" max="240" @bind="_intervalMinutes" class="ui-input" />
+                </div>
+
+                <div>
+                    <label class="ui-label">Velikost sklenice (ml)</label>
+                    <input type="number" min="50" max="1000" @bind="_glassSize" class="ui-input" />
+                </div>
+
+                <button @onclick="SaveSettingsAsync" class="ui-btn-primary w-full">
+                    Uložit
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="mb-4 flex items-end justify-between">
+            <div>
+                <p class="ui-text-helper">Dnes</p>
+                <p class="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                    @_totalMl ml
+                </p>
+            </div>
+
+            <div class="text-right">
+                <p class="ui-text-helper">Další připomenutí</p>
+                <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
+                    @RemainingMinutes min
+                </p>
+            </div>
+        </div>
+
+        <div class="mb-5 flex flex-col items-center">
+            <div class="relative h-32 w-24 overflow-hidden rounded-b-[26px] rounded-t-xl border-2 border-slate-300 bg-slate-100 shadow-inner dark:border-slate-600 dark:bg-slate-700/50">
+                <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-sky-600 to-sky-400 transition-all duration-1000 ease-linear"
+                     style="height:@($"{_progress}%")">
+                    <div class="animate-wave absolute -top-3 left-[-50%] h-6 w-[200%] rounded-[50%] bg-white/30"></div>
+                    <div class="animate-wave-slow absolute -top-3 left-[-50%] h-6 w-[200%] rounded-[50%] bg-sky-400/50" style="top:-5px;"></div>
+                </div>
+
+                <div class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+                    <span class="@(_progress > 50 ? "text-sm font-bold text-white drop-shadow-md" : "text-sm font-bold text-slate-600 dark:text-slate-300")">
+                        @(_isEmpty ? "0%" : $"{Math.Round(_progress)}%")
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <button @onclick="HandleDrinkAsync"
+                class="@GetDrinkButtonClass()"
+                title="@($"Přičíst {_glassSize} ml")">
+            @if (_isEmpty)
+            {
+                <span>NAPÍT SE!</span>
+            }
+            else
+            {
+                <span>@_glassSize ml</span>
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+            }
+        </button>
+    }
+
+    <style>
+        @@keyframes wave {
+            0% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(-25%) rotate(5deg); }
+            100% { transform: translateX(0) rotate(0deg); }
+        }
+
+        @@keyframes wave-slow {
+            0% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(25%) rotate(-5deg); }
+            100% { transform: translateX(0) rotate(0deg); }
+        }
+
+        .animate-wave {
+            animation: wave 4s infinite ease-in-out;
+        }
+
+        .animate-wave-slow {
+            animation: wave-slow 6s infinite ease-in-out;
+        }
+    </style>
+</div>
+
+@code {
+    private double _progress = 100;
+    private bool _isEmpty;
+    private bool _showSettings;
+    private int _totalMl;
+    private int _intervalMinutes = 60;
+    private int _glassSize = 250;
+    private long _lastDrinkUnixMs;
+    private System.Threading.Timer? _timer;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var savedInterval = await Storage.GetStringAsync("hydrationInterval");
+        var savedGlassSize = await Storage.GetStringAsync("hydrationGlassSize");
+        var savedTotalMl = await Storage.GetStringAsync("hydrationTotalMl");
+        var savedDate = await Storage.GetStringAsync("hydrationDate");
+        var savedLastDrink = await Storage.GetStringAsync("hydrationLastDrink");
+
+        if (int.TryParse(savedInterval, out var interval))
+            _intervalMinutes = interval;
+
+        if (int.TryParse(savedGlassSize, out var glassSize))
+            _glassSize = glassSize;
+
+        var todayStr = DateTime.Now.ToString("yyyy-MM-dd");
+
+        if (savedDate != todayStr)
+        {
+            _totalMl = 0;
+            await Storage.SetStringAsync("hydrationDate", todayStr);
+            await Storage.SetStringAsync("hydrationTotalMl", "0");
+        }
+        else if (int.TryParse(savedTotalMl, out var totalMl))
+        {
+            _totalMl = totalMl;
+        }
+
+        if (long.TryParse(savedLastDrink, out var lastDrink))
+        {
+            _lastDrinkUnixMs = lastDrink;
+        }
+        else
+        {
+            _lastDrinkUnixMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            await Storage.SetStringAsync("hydrationLastDrink", _lastDrinkUnixMs.ToString());
+        }
+
+        UpdateWaterLevel();
+        StartTicker();
+        StateHasChanged();
+    }
+
+    private void StartTicker()
+    {
+        _timer?.Dispose();
+        _timer = new System.Threading.Timer(async _ =>
+        {
+            UpdateWaterLevel();
+            await InvokeAsync(StateHasChanged);
+        }, null, 1000, 1000);
+    }
+
+    private void UpdateWaterLevel()
+    {
+        var currentIntervalMs = _intervalMinutes * 60 * 1000.0;
+        var diff = DateTimeOffset.Now.ToUnixTimeMilliseconds() - _lastDrinkUnixMs;
+
+        if (diff >= currentIntervalMs)
+        {
+            _progress = 0;
+            _isEmpty = true;
+            return;
+        }
+
+        _progress = Math.Max(0, 100 - ((diff / currentIntervalMs) * 100));
+        _isEmpty = false;
+    }
+
+    private async Task HandleDrinkAsync()
+    {
+        _lastDrinkUnixMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        _totalMl += _glassSize;
+
+        await Storage.SetStringAsync("hydrationLastDrink", _lastDrinkUnixMs.ToString());
+        await Storage.SetStringAsync("hydrationTotalMl", _totalMl.ToString());
+        await Storage.SetStringAsync("hydrationDate", DateTime.Now.ToString("yyyy-MM-dd"));
+
+        _progress = 100;
+        _isEmpty = false;
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        await Storage.SetStringAsync("hydrationInterval", _intervalMinutes.ToString());
+        await Storage.SetStringAsync("hydrationGlassSize", _glassSize.ToString());
+
+        _showSettings = false;
+        _lastDrinkUnixMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        await Storage.SetStringAsync("hydrationLastDrink", _lastDrinkUnixMs.ToString());
+
+        _progress = 100;
+        _isEmpty = false;
+    }
+
+    private int RemainingMinutes
+    {
+        get
+        {
+            var left = Math.Round((_progress / 100.0) * _intervalMinutes);
+            return Math.Max(0, (int)left);
+        }
+    }
+
+    private string GetDrinkButtonClass()
+    {
+        return _isEmpty
+            ? "flex w-full items-center justify-center gap-2 rounded-xl bg-rose-500 py-2.5 text-sm font-semibold text-white transition-all hover:bg-rose-600 animate-pulse"
+            : "flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 py-2.5 text-sm font-semibold text-sky-700 transition-all hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-900/30 dark:text-sky-400 dark:hover:bg-sky-900/50";
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

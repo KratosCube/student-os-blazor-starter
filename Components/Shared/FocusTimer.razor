@@ -1,0 +1,291 @@
+@implements IDisposable
+@inject BrowserStorageService Storage
+@inject StudySessionService StudySessionService
+@inject IJSRuntime JS
+
+<div class="ui-card p-5 @( _mode == TimerMode.Break ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-900/20" : "" )">
+    <div class="mb-4 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+            <svg class="h-5 w-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="13" r="8"></circle>
+                <path d="M12 9v4l2.5 2.5"></path>
+                <path d="M9 3h6"></path>
+            </svg>
+            <h3 class="ui-card-title">
+                @(_mode == TimerMode.Work ? "Focus Mode" : "Pauza")
+            </h3>
+        </div>
+
+        <button @onclick="SwitchModeAsync" class="ui-btn-small ui-btn-secondary px-3 text-xs">
+            @(_mode == TimerMode.Work ? "Pauza" : "Práce")
+        </button>
+    </div>
+
+    @if (_mode == TimerMode.Work)
+    {
+        <div class="mb-5">
+            <select value="@(_selectedSubjectId?.ToString() ?? string.Empty)"
+                    @onchange="OnSubjectChanged"
+                    class="ui-select"
+                    disabled="@_isActive">
+                <option value="">Vyber předmět</option>
+                @foreach (var s in Subjects)
+                {
+                    <option value="@s.Id">@s.Name</option>
+                }
+            </select>
+        </div>
+    }
+
+    <div class="mb-6 text-center">
+        <div class="text-6xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            @FormatTime(_timeLeftSeconds)
+        </div>
+    </div>
+
+    <div class="flex items-center justify-center gap-3">
+        <button @onclick="ToggleTimerAsync"
+                disabled="@(_mode == TimerMode.Work && _selectedSubjectId is null && !_isActive)"
+                class="@GetStartPauseButtonClass()">
+            @if (_isActive)
+            {
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="5" width="4" height="14" rx="1"></rect>
+                    <rect x="14" y="5" width="4" height="14" rx="1"></rect>
+                </svg>
+                <span>Pauza</span>
+            }
+            else
+            {
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"></path>
+                </svg>
+                <span>Start</span>
+            }
+        </button>
+
+        <button @onclick="ResetTimerAsync"
+                class="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                aria-label="Resetovat timer">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+                <path d="M3 3v6h6"></path>
+            </svg>
+        </button>
+    </div>
+
+    @if (_mode == TimerMode.Work && _selectedSubjectId is null)
+    {
+        <p class="mt-4 text-center text-sm font-medium text-amber-600 dark:text-rose-400">
+            Vyber předmět pro start.
+        </p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<Subject> Subjects { get; set; } = new();
+
+    private int? _selectedSubjectId;
+    private int _timeLeftSeconds = 25 * 60;
+    private bool _isActive;
+    private TimerMode _mode = TimerMode.Work;
+    private System.Threading.Timer? _timer;
+    private long? _targetUnixMs;
+    private bool _loaded;
+    private bool _finishing;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var savedSubject = await Storage.GetStringAsync("timerSubject");
+        if (int.TryParse(savedSubject, out var subjectId))
+            _selectedSubjectId = subjectId;
+
+        var savedTarget = await Storage.GetStringAsync("timerTarget");
+        if (long.TryParse(savedTarget, out var targetUnixMs))
+        {
+            _targetUnixMs = targetUnixMs;
+            var diff = (int)Math.Ceiling((targetUnixMs - DateTimeOffset.Now.ToUnixTimeMilliseconds()) / 1000d);
+
+            if (diff > 0)
+            {
+                _timeLeftSeconds = diff;
+                _isActive = true;
+                StartTicker();
+            }
+            else
+            {
+                await Storage.RemoveAsync("timerTarget");
+                _timeLeftSeconds = GetDefaultSeconds();
+            }
+        }
+
+        _loaded = true;
+        StateHasChanged();
+    }
+
+    private async Task OnSubjectChanged(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString();
+
+        if (int.TryParse(raw, out var value))
+        {
+            _selectedSubjectId = value;
+            if (_loaded)
+                await Storage.SetStringAsync("timerSubject", value.ToString());
+        }
+        else
+        {
+            _selectedSubjectId = null;
+            if (_loaded)
+                await Storage.RemoveAsync("timerSubject");
+        }
+    }
+
+    private async Task ToggleTimerAsync()
+    {
+        if (!_isActive)
+        {
+            if (_mode == TimerMode.Work && _selectedSubjectId is null)
+                return;
+
+            _targetUnixMs = DateTimeOffset.Now.ToUnixTimeMilliseconds() + (_timeLeftSeconds * 1000L);
+            await Storage.SetStringAsync("timerTarget", _targetUnixMs.Value.ToString());
+
+            if (_selectedSubjectId is not null)
+                await Storage.SetStringAsync("timerSubject", _selectedSubjectId.Value.ToString());
+
+            _isActive = true;
+            StartTicker();
+            return;
+        }
+
+        _isActive = false;
+        StopTicker();
+        _targetUnixMs = null;
+        await Storage.RemoveAsync("timerTarget");
+    }
+
+    private async Task ResetTimerAsync()
+    {
+        _isActive = false;
+        _targetUnixMs = null;
+        StopTicker();
+        _timeLeftSeconds = GetDefaultSeconds();
+        await Storage.RemoveAsync("timerTarget");
+        StateHasChanged();
+    }
+
+    private async Task SwitchModeAsync()
+    {
+        _mode = _mode == TimerMode.Work ? TimerMode.Break : TimerMode.Work;
+        _isActive = false;
+        _targetUnixMs = null;
+        StopTicker();
+        _timeLeftSeconds = GetDefaultSeconds();
+        await Storage.RemoveAsync("timerTarget");
+        StateHasChanged();
+    }
+
+    private void StartTicker()
+    {
+        StopTicker();
+        _timer = new System.Threading.Timer(async _ => await TickAsync(), null, 1000, 1000);
+    }
+
+    private void StopTicker()
+    {
+        _timer?.Dispose();
+        _timer = null;
+    }
+
+    private async Task TickAsync()
+    {
+        if (!_isActive || _targetUnixMs is null)
+            return;
+
+        var diff = (int)Math.Ceiling((_targetUnixMs.Value - DateTimeOffset.Now.ToUnixTimeMilliseconds()) / 1000d);
+
+        if (diff <= 0)
+        {
+            _timeLeftSeconds = 0;
+            await InvokeAsync(StateHasChanged);
+            await FinishTimerAsync();
+            return;
+        }
+
+        _timeLeftSeconds = diff;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task FinishTimerAsync()
+    {
+        if (_finishing)
+            return;
+
+        _finishing = true;
+
+        try
+        {
+            _isActive = false;
+            _targetUnixMs = null;
+            StopTicker();
+            await Storage.RemoveAsync("timerTarget");
+
+            if (_mode == TimerMode.Work && _selectedSubjectId is not null)
+            {
+                await StudySessionService.AddAsync(new StudySession
+                {
+                    SubjectId = _selectedSubjectId.Value,
+                    Duration = 25,
+                    CreatedAt = DateTime.Now
+                });
+            }
+
+            await JS.InvokeVoidAsync("alert", _mode == TimerMode.Work
+                ? "Hotovo! Dej si pauzu."
+                : "Pauza končí. Zpátky do práce.");
+
+            _timeLeftSeconds = GetDefaultSeconds();
+            await InvokeAsync(StateHasChanged);
+        }
+        finally
+        {
+            _finishing = false;
+        }
+    }
+
+    private int GetDefaultSeconds() => _mode == TimerMode.Work ? 25 * 60 : 5 * 60;
+
+    private static string FormatTime(int seconds)
+    {
+        var m = seconds / 60;
+        var s = seconds % 60;
+        return $"{m:00}:{s:00}";
+    }
+
+    private string GetStartPauseButtonClass()
+    {
+        if (_isActive)
+            return "inline-flex h-12 min-w-[128px] items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 text-lg font-semibold text-white transition-colors hover:bg-amber-600";
+
+        if (_mode == TimerMode.Work && _selectedSubjectId is null)
+            return "inline-flex h-12 min-w-[128px] items-center justify-center gap-2 rounded-xl bg-slate-300 px-5 text-lg font-semibold text-slate-500 dark:bg-slate-700 dark:text-slate-400 cursor-not-allowed";
+
+        return "inline-flex h-12 min-w-[128px] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-lg font-semibold text-white transition-colors hover:bg-indigo-700";
+    }
+
+    public void Dispose()
+    {
+        StopTicker();
+    }
+
+    private enum TimerMode
+    {
+        Work,
+        Break
+    }
+}
