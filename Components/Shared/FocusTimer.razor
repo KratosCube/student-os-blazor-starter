@@ -87,13 +87,17 @@
     public List<Subject> Subjects { get; set; } = new();
 
     private int? _selectedSubjectId;
-    private int _timeLeftSeconds = 25 * 60;
+    //private int _timeLeftSeconds = 25 * 60;
+
+    private int _timeLeftSeconds = 25*60;
     private bool _isActive;
     private TimerMode _mode = TimerMode.Work;
     private System.Threading.Timer? _timer;
     private long? _targetUnixMs;
     private bool _loaded;
     private bool _finishing;
+    private int _pauseTime = 5;
+    private int _mainTime = 25;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -240,15 +244,22 @@
                 await StudySessionService.AddAsync(new StudySession
                 {
                     SubjectId = _selectedSubjectId.Value,
-                    Duration = 25,
+                    Duration = _mainTime,   //25
                     CreatedAt = DateTime.Now
                 });
             }
 
-            await JS.InvokeVoidAsync("alert", _mode == TimerMode.Work
-                ? "Hotovo! Dej si pauzu."
-                : "Pauza končí. Zpátky do práce.");
+            try{
+    await JS.InvokeVoidAsync("alert", _mode == TimerMode.Work
+        ? "Hotovo! Dej si pauzu."
+        : "Pauza končí. Zpátky do práce.");
 
+await SwitchModeAsync();
+}
+catch (TaskCanceledException)
+{
+    // uživatel odešel / reconnect → ignoruj
+}
             _timeLeftSeconds = GetDefaultSeconds();
             await InvokeAsync(StateHasChanged);
         }
@@ -257,8 +268,9 @@
             _finishing = false;
         }
     }
-
-    private int GetDefaultSeconds() => _mode == TimerMode.Work ? 25 * 60 : 5 * 60;
+// Opravená metoda vracící sekundy
+private int GetDefaultSeconds() => 
+    _mode == TimerMode.Work ? _mainTime * 60 : _pauseTime * 60;
 
     private static string FormatTime(int seconds)
     {

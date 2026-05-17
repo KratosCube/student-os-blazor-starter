@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/StudentOs.Blazor.csproj": {}
+    "/home/xcroler/Documents/School/UUR/student-os-blazor-starter/StudentOs.Blazor.csproj": {}
   },
   "projects": {
-    "/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/StudentOs.Blazor.csproj": {
+    "/home/xcroler/Documents/School/UUR/student-os-blazor-starter/StudentOs.Blazor.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/StudentOs.Blazor.csproj",
+        "projectUniqueName": "/home/xcroler/Documents/School/UUR/student-os-blazor-starter/StudentOs.Blazor.csproj",
         "projectName": "StudentOs.Blazor",
-        "projectPath": "/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/StudentOs.Blazor.csproj",
+        "projectPath": "/home/xcroler/Documents/School/UUR/student-os-blazor-starter/StudentOs.Blazor.csproj",
         "packagesPath": "/home/xcroler/.nuget/packages/",
-        "outputPath": "/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/obj/",
+        "outputPath": "/home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/xcroler/.nuget/NuGet/NuGet.Config"

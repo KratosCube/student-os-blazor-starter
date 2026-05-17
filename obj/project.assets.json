@@ -3881,11 +3881,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/StudentOs.Blazor.csproj",
+      "projectUniqueName": "/home/xcroler/Documents/School/UUR/student-os-blazor-starter/StudentOs.Blazor.csproj",
       "projectName": "StudentOs.Blazor",
-      "projectPath": "/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/StudentOs.Blazor.csproj",
+      "projectPath": "/home/xcroler/Documents/School/UUR/student-os-blazor-starter/StudentOs.Blazor.csproj",
       "packagesPath": "/home/xcroler/.nuget/packages/",
-      "outputPath": "/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/obj/",
+      "outputPath": "/home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/xcroler/.nuget/NuGet/NuGet.Config"
@@ -4237,5 +4237,27 @@
         }
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'System.Security.Cryptography.Xml' 9.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-37gx-xxp4-5rgx",
+      "libraryId": "System.Security.Cryptography.Xml",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'System.Security.Cryptography.Xml' 9.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf",
+      "libraryId": "System.Security.Cryptography.Xml",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
 }

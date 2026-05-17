@@ -2,31 +2,46 @@
 
 <div class="ui-card p-6">
     <div class="mb-5">
-        <h3 class="ui-section-title">@Title</h3>
-        @if (!string.IsNullOrWhiteSpace(Description))
+        <h3 class="ui-section-title">@title</h3>
+        @if (!string.IsNullOrWhiteSpace(description))
         {
-            <p class="ui-text-secondary mt-2">@Description</p>
+            <p class="ui-text-secondary mt-2">@description</p>
         }
     </div>
 
     <div class="overflow-hidden rounded-xl bg-slate-100 px-4 py-5 dark:bg-slate-950">
-        <div class="grid items-end gap-3" style="@GridStyle">
-            @foreach (var item in Items)
+        <div class="grid items-end gap-3" style="@gridstyle">
+            @foreach (var item in items)
             {
-                var heightPercent = MaxValue == 0 ? 0 : (item.Value / (double)MaxValue) * 100;
-                var finalHeight = Math.Max(heightPercent, item.Value > 0 ? 8 : 0);
+                // Výška celého sloupce se počítá z TotalValue
+                var heightPercent = maxvalue == 0 ? 0 : (item.TotalValue / (double)maxvalue) * 100;
+                var finalHeight = Math.Max(heightPercent, item.TotalValue > 0 ? 8 : 0);
 
                 <div class="min-w-0">
+                    @* Popisek nad barevným sloupcem *@
                     <div class="mb-3 text-center text-xs font-medium text-slate-500 dark:text-slate-300">
-                        @item.Value min
+                        @item.TotalValue min
                     </div>
 
                     <div class="flex h-[210px] items-end justify-center">
-                        <div class="w-full max-w-[50px] rounded-t-xl transition-all duration-500"
-                             style="height:@($"{finalHeight}%"); background-color:@(item.Color ?? "#6366f1")">
+                        @* Hlavní kontejner baru - nyní flex-col pro skládání segmentů *@
+                        <div class="w-full max-w-[50px] flex flex-col justify-end rounded-t-xl overflow-hidden transition-all duration-500 shadow-sm"
+                             style="height:@($"{finalHeight}%");">
+                            
+                            @foreach (var segment in item.Segments)
+                            {
+                                // Výška segmentu je poměr jeho hodnoty k celku dne
+                                var segmentHeight = (segment.Value / (double)item.TotalValue) * 100;
+                                
+                                <div class="w-full transition-all hover:brightness-125 cursor-help border-b border-white/10 last:border-0"
+                                     style="height:@($"{segmentHeight}%"); background-color:@(segment.Color)"
+                                     title="@segment.Label: @segment.Value min">
+                                </div>
+                            }
                         </div>
                     </div>
 
+                    @* Popisek pod sloupcem (např. den v týdnu) *@
                     <div class="mt-3 truncate text-center text-sm font-medium text-slate-700 dark:text-slate-200">
                         @item.Label
                     </div>
@@ -37,16 +52,12 @@
 </div>
 
 @code {
-    [Parameter]
-    public string Title { get; set; } = string.Empty;
+    [Parameter] public string title { get; set; } = string.Empty;
+    [Parameter] public string? description { get; set; }
+    [Parameter] public List<ChartItemVm> items { get; set; } = new();
 
-    [Parameter]
-    public string? Description { get; set; }
+    // MaxValue hledáme napříč součty (TotalValue) všech dnů v grafu
+    private int maxvalue => Math.Max(items.Count == 0 ? 0 : items.Max(x => x.TotalValue), 1);
 
-    [Parameter]
-    public List<ChartItemVm> Items { get; set; } = new();
-
-    private int MaxValue => Math.Max(Items.Count == 0 ? 0 : Items.Max(x => x.Value), 1);
-
-    private string GridStyle => $"grid-template-columns: repeat({Math.Max(Items.Count, 1)}, minmax(0, 1fr));";
+    private string gridstyle => $"grid-template-columns: repeat({Math.Max(items.Count, 1)}, minmax(0, 1fr));";
 }

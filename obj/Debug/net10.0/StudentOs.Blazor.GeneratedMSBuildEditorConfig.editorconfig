@@ -19,81 +19,81 @@ build_property.TargetFrameworkIdentifier = .NETCoreApp
 build_property.TargetFrameworkVersion = v10.0
 build_property.RootNamespace = StudentOs.Blazor
 build_property.RootNamespace = StudentOs.Blazor
-build_property.ProjectDir = /home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/
+build_property.ProjectDir = /home/xcroler/Documents/School/UUR/student-os-blazor-starter/
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = /home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter
+build_property.MSBuildProjectDirectory = /home/xcroler/Documents/School/UUR/student-os-blazor-starter
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/App.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/App.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9BcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Layout/MainLayout.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Layout/NavMenu.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Layout/NavMenu.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTmF2TWVudS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Pages/Dashboard.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Pages/Dashboard.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9EYXNoYm9hcmQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Pages/Planner.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Pages/Planner.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9QbGFubmVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Pages/Stats.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Pages/Stats.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9TdGF0cy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Pages/Subjects.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Pages/Subjects.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9TdWJqZWN0cy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Routes.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Routes.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Sb3V0ZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Shared/FocusTimer.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Shared/FocusTimer.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvRm9jdXNUaW1lci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Shared/GoalTracker.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Shared/GoalTracker.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvR29hbFRyYWNrZXIucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Shared/HydrationTracker.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Shared/HydrationTracker.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvSHlkcmF0aW9uVHJhY2tlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Shared/QuickNotes.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Shared/QuickNotes.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvUXVpY2tOb3Rlcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Shared/RewardShop.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Shared/RewardShop.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvUmV3YXJkU2hvcC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Shared/StudyBarChart.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Shared/StudyBarChart.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvU3R1ZHlCYXJDaGFydC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Shared/StudyChartSwitcher.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Shared/StudyChartSwitcher.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvU3R1ZHlDaGFydFN3aXRjaGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/Shared/ThemeToggle.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/Shared/ThemeToggle.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvVGhlbWVUb2dnbGUucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/xcroler/Downloads/gitclone/student-os-csharp/student-os-blazor-starter/Components/_Imports.razor]
+[/home/xcroler/Documents/School/UUR/student-os-blazor-starter/Components/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9fSW1wb3J0cy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
