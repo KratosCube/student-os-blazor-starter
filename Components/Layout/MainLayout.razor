@@ -96,8 +96,8 @@
              aria-modal="true"
              aria-labelledby="about-dialog-title"
              @onclick="CloseAboutDialog"
-             class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
-            <div class="ui-card w-full max-w-2xl p-6"
+             class="ui-modal-backdrop">
+            <div class="ui-card ui-dialog"
                  @onclick:stopPropagation="true">
                 <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
                     <div>
@@ -112,15 +112,11 @@
                         </p>
                     </div>
 
-                    <button type="button"
-                            class="ui-btn-secondary"
-                            @onclick="CloseAboutDialog">
-                        Zavřít
-                    </button>
+                    
                 </div>
 
                 <div class="space-y-5">
-                    <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                    <section class="ui-card-soft p-4">
                         <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">
                             Autor
                         </p>
@@ -155,13 +151,13 @@
                         </p>
 
                         <div class="mt-3 grid gap-3 md:grid-cols-2">
-                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                            <div class="ui-card-soft p-4">
                                 <div class="mb-2 flex items-center justify-between gap-3">
                                     <p class="font-semibold text-slate-800 dark:text-slate-100">
                                         Dashboard
                                     </p>
 
-                                    <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                    <span class="ui-badge ui-badge-neutral">
                                         Přehled
                                     </span>
                                 </div>
@@ -171,13 +167,13 @@
                                 </p>
                             </div>
 
-                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                            <div class="ui-card-soft p-4">
                                 <div class="mb-2 flex items-center justify-between gap-3">
                                     <p class="font-semibold text-slate-800 dark:text-slate-100">
                                         Planner
                                     </p>
 
-                                    <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                    <span class="ui-badge ui-badge-neutral">
                                         Termíny
                                     </span>
                                 </div>
@@ -187,13 +183,13 @@
                                 </p>
                             </div>
 
-                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                            <div class="ui-card-soft p-4">
                                 <div class="mb-2 flex items-center justify-between gap-3">
                                     <p class="font-semibold text-slate-800 dark:text-slate-100">
                                         Subjects
                                     </p>
 
-                                    <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                    <span class="ui-badge ui-badge-neutral">
                                         Data
                                     </span>
                                 </div>
@@ -203,13 +199,13 @@
                                 </p>
                             </div>
 
-                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                            <div class="ui-card-soft p-4">
                                 <div class="mb-2 flex items-center justify-between gap-3">
                                     <p class="font-semibold text-slate-800 dark:text-slate-100">
                                         Stats
                                     </p>
 
-                                    <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                    <span class="ui-badge ui-badge-neutral">
                                         Grafy
                                     </span>
                                 </div>

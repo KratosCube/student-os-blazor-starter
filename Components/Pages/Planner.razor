@@ -61,28 +61,26 @@
                     <InputNumber @bind-Value="_form.Duration" class="ui-input" />
                     <ValidationMessage For="@(() => _form.Duration)" />
                 </div>
+
                 <div>
-    <label class="ui-label">Poznámka</label>
-    <InputTextArea @bind-Value="_form.Note"
-                   class="ui-input"
-                   placeholder="Např. téma zápočtu, rozsah učiva, místnost..."
-                   style="height:112px; padding-top:.75rem; padding-bottom:.75rem; resize:vertical;" />
-    <p class="ui-text-helper mt-2">
-        Volitelné. Maximálně 500 znaků.
-    </p>
-    <ValidationMessage For="@(() => _form.Note)" />
-</div>
+                    <label class="ui-label">Poznámka</label>
+                    <InputTextArea @bind-Value="_form.Note"
+                                   class="ui-textarea-field"
+                                   placeholder="Např. téma zápočtu, rozsah učiva, místnost..." />
+                    <p class="ui-text-helper mt-2">
+                        Volitelné. Maximálně 500 znaků.
+                    </p>
+                    <ValidationMessage For="@(() => _form.Note)" />
+                </div>
 
                 @if (!string.IsNullOrWhiteSpace(_message))
                 {
-                    <p class="@(_messageSuccess
-                        ? "rounded-2xl bg-emerald-900/20 px-4 py-3 text-sm text-emerald-300"
-                        : "rounded-2xl bg-rose-900/20 px-4 py-3 text-sm text-rose-300")">
+                    <p class="@(_messageSuccess ? "ui-alert-success" : "ui-alert-danger")">
                         @_message
                     </p>
                 }
 
-                <div class="flex gap-3">
+                <div class="flex flex-wrap gap-3">
                     <button type="submit" class="ui-btn-primary">
                         @(_isEditing ? "Uložit změny" : "Přidat termín")
                     </button>
@@ -105,7 +103,7 @@
 
                 @if (_exams.Count == 0)
                 {
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-10 text-center text-slate-600 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-400">
+                    <div class="ui-empty-state">
                         Zatím nejsou žádné termíny.
                     </div>
                 }
@@ -114,7 +112,7 @@
                     <div class="space-y-3">
                         @foreach (var exam in _exams)
                         {
-                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/60">
+                            <div class="ui-list-item">
                                 <div class="grid gap-4 md:grid-cols-[minmax(160px,1fr)_auto_64px_120px] md:items-center">
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-3">
@@ -129,23 +127,21 @@
                                             <div>@FormatDate(exam.Date)</div>
                                             <div>@FormatTime(exam.Date)</div>
                                         </div>
+
                                         @if (!string.IsNullOrWhiteSpace(exam.Note))
-{
-    <p class="ui-text-secondary mt-3 pl-6"
-       style="white-space: pre-line; overflow-wrap: anywhere;">
-        @exam.Note
-    </p>
-}
+                                        {
+                                            <p class="ui-note-text pl-6">
+                                                @exam.Note
+                                            </p>
+                                        }
                                     </div>
 
                                     <div class="flex flex-wrap gap-2">
-                                        <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                        <span class="ui-badge ui-badge-neutral">
                                             @(exam.Type == "confirmed" ? "Potvrzeno" : "Možný")
                                         </span>
 
-                                        <span class="ui-badge @(exam.IsDone
-                                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300")">
+                                        <span class="ui-badge @(exam.IsDone ? "ui-badge-success" : "ui-badge-warning")">
                                             @(exam.IsDone ? "Hotovo" : "Aktivní")
                                         </span>
                                     </div>
@@ -231,11 +227,9 @@
         _form.Date = entity.Date;
         _form.Type = entity.Type;
         _form.Duration = entity.Duration;
-_form.Note = entity.Note ?? string.Empty;
-_form.IsDone = entity.IsDone;
+        _form.Note = entity.Note ?? string.Empty;
+        _form.IsDone = entity.IsDone;
     }
-
-
 
     private async Task SaveAsync()
     {
@@ -277,8 +271,9 @@ _form.IsDone = entity.IsDone;
             Date = _form.Date,
             Type = _form.Type,
             Duration = _form.Duration,
-Note = NormalizeNote(_form.Note),
-IsDone = _form.IsDone        };
+            Note = NormalizeNote(_form.Note),
+            IsDone = _form.IsDone
+        };
 
         if (_isEditing && _form.Id is not null)
         {
@@ -364,8 +359,8 @@ IsDone = _form.IsDone        };
         _form.Date = DateTime.Now.AddDays(1);
         _form.Type = "confirmed";
         _form.Duration = 90;
-_form.Note = string.Empty;
-_form.IsDone = false;
+        _form.Note = string.Empty;
+        _form.IsDone = false;
 
         _dateError = null;
 
@@ -376,17 +371,16 @@ _form.IsDone = false;
         }
     }
 
- 
-
     private string FormatDate(DateTime date) => date.ToString("d. M. yyyy", _cs);
 
     private string FormatTime(DateTime date) => date.ToString("HH:mm", _cs);
 
-private static string? NormalizeNote(string? note)
-{
-    var trimmed = note?.Trim();
-    return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
-}
+    private static string? NormalizeNote(string? note)
+    {
+        var trimmed = note?.Trim();
+        return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+    }
+
     private sealed class PlannerExamFormModel
     {
         public int? Id { get; set; }
@@ -400,11 +394,11 @@ private static string? NormalizeNote(string? note)
         public string Type { get; set; } = "confirmed";
 
         [Range(15, 480, ErrorMessage = "Délka musí být v rozsahu 15 až 480 minut.")]
-public int Duration { get; set; } = 90;
+        public int Duration { get; set; } = 90;
 
-[MaxLength(500, ErrorMessage = "Poznámka může mít maximálně 500 znaků.")]
-public string Note { get; set; } = string.Empty;
+        [MaxLength(500, ErrorMessage = "Poznámka může mít maximálně 500 znaků.")]
+        public string Note { get; set; } = string.Empty;
 
-public bool IsDone { get; set; }
+        public bool IsDone { get; set; }
     }
 }

@@ -71,89 +71,81 @@ else
             </div>
 
             <div class="space-y-5">
-                
-
                 <StudyBarChart
-    Title="Studium za poslední týden"
-    Description="Přehled aktivity po dnech."
-    Items="_vm.WeeklySeries" />
+                    Title="Studium za poslední týden"
+                    Items="_vm.WeeklySeries" />
 
-<div class="ui-card p-6">
-    <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <h3 class="ui-section-title">Nejbližší termíny</h3>
-            <p class="ui-text-secondary mt-2">
-                Aktivní termíny na dnešek a následujících 14 dní.
-            </p>
-        </div>
-
-        <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-            @DashboardExamCount aktivních
-        </span>
-    </div>
-
-    @if (DashboardExamCount == 0)
-    {
-        <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center dark:border-slate-700 dark:bg-slate-950/60">
-            <p class="font-semibold text-slate-700 dark:text-slate-200">
-                Žádné blízké termíny
-            </p>
-            <p class="ui-text-secondary mt-2">
-                V příštích 14 dnech nemáš žádný aktivní termín.
-            </p>
-        </div>
-    }
-    else
-    {
-        <div class="space-y-3">
-            @foreach (var exam in DashboardExams)
-            {
-                var isToday = exam.Date.Date == DateTime.Now.Date;
-                var cardClass = isToday
-                    ? "rounded-xl border border-amber-200/70 bg-amber-50/70 p-4 dark:border-amber-900/40 dark:bg-amber-900/10"
-                    : "rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50";
-
-                <div class="@cardClass">
-                    <div class="flex flex-wrap items-start gap-4">
-                        <div class="h-11 w-1.5 shrink-0 rounded-full"
-                             style="background-color:@(exam.Subject?.Color ?? "#6366f1")">
+                <div class="ui-card p-6">
+                    <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                            <h3 class="ui-section-title">Nejbližší termíny</h3>
                         </div>
 
-                        <div class="min-w-0 flex-1">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <p class="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                                    @(exam.Subject?.Name ?? "Bez předmětu")
-                                </p>
+                        <span class="ui-badge ui-badge-neutral">
+                            @DashboardExamCount aktivních
+                        </span>
+                    </div>
 
-                                <span class="@GetDateBadgeClass(exam.Date)">
-                                    @FormatDaysUntil(exam.Date)
-                                </span>
-
-                                <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                                    @(exam.Type == "confirmed" ? "Potvrzeno" : "Možné")
-                                </span>
-                            </div>
-
-                            <p class="ui-text-secondary mt-1">
-                                @exam.Date.ToString("d. M. yyyy HH:mm", _cs) · @exam.Duration min
+                    @if (DashboardExamCount == 0)
+                    {
+                        <div class="ui-empty-state">
+                            <p class="font-semibold text-slate-700 dark:text-slate-200">
+                                Žádné blízké termíny
                             </p>
-
-                            @if (!string.IsNullOrWhiteSpace(exam.Note))
+                            <p class="ui-text-secondary mt-2">
+                                V příštích 14 dnech nemáš žádný aktivní termín.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="space-y-3">
+                            @foreach (var exam in DashboardExams)
                             {
-                                <p class="ui-text-secondary mt-3"
-                                   style="white-space: pre-line; overflow-wrap: anywhere;">
-                                    @exam.Note
-                                </p>
+                                var isToday = exam.Date.Date == DateTime.Now.Date;
+                                var cardClass = isToday ? "ui-list-item-warning" : "ui-list-item";
+
+                                <div class="@cardClass">
+                                    <div class="flex flex-wrap items-start gap-4">
+                                        <div class="h-11 w-1.5 shrink-0 rounded-full"
+                                             style="background-color:@(exam.Subject?.Color ?? "#6366f1")">
+                                        </div>
+
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <p class="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                                                    @(exam.Subject?.Name ?? "Bez předmětu")
+                                                </p>
+
+                                                <span class="@GetDateBadgeClass(exam.Date)">
+                                                    @FormatDaysUntil(exam.Date)
+                                                </span>
+
+                                                <span class="ui-badge ui-badge-neutral">
+                                                    @(exam.Type == "confirmed" ? "Potvrzeno" : "Možné")
+                                                </span>
+                                            </div>
+
+                                            <p class="ui-text-secondary mt-1">
+                                                @exam.Date.ToString("d. M. yyyy HH:mm", _cs) · @exam.Duration min
+                                            </p>
+
+                                            @if (!string.IsNullOrWhiteSpace(exam.Note))
+                                            {
+                                                <p class="ui-note-text">
+                                                    @exam.Note
+                                                </p>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
                             }
                         </div>
-                    </div>
+                    }
                 </div>
-            }
-        </div>
-    }
-</div>
 
-<QuickNotes />            </div>
+                <QuickNotes />
+            </div>
         </section>
     </div>
 }
@@ -178,13 +170,11 @@ else
         ? 0
         : _vm.TodayExams.Count + _vm.UpcomingExams.Count;
 
-
-
     private static string GetDateBadgeClass(DateTime date)
     {
         return date.Date == DateTime.Now.Date
-            ? "ui-badge bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-            : "ui-badge bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300";
+            ? "ui-badge ui-badge-warning"
+            : "ui-badge ui-badge-primary";
     }
 
     private static string FormatMinutes(int totalMinutes)
@@ -206,6 +196,4 @@ else
             _ => $"Za {days} dní"
         };
     }
-
-    
 }
