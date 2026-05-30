@@ -1,0 +1,11 @@
+bin/
+obj/
+
+*.db
+*.db-shm
+*.db-wal
+*.sync-conflict-*.db
+
+.vscode/
+.idea/
+.DS_Store
