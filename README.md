@@ -1,8 +1,8 @@
 # Student OS
 
-Student OS je webová aplikace vytvořená jako semestrální práce do předmětu KIV/UUR.
+Student OS je webová aplikace vytvořená jako semestrální práce pro předmět KIV/UUR.
 
-Aplikace slouží k plánování termínů zkoušek, evidenci studijních aktivit a zobrazení základních statistik studia.
+Aplikace slouží k plánování termínů zkoušek, evidenci studia a zobrazení základních statistik studia.
 
 Autor: Václav Chuchlík
 
