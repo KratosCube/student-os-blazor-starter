@@ -17,7 +17,6 @@ public class DashboardService
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
 
-        // Načtení dat s vazbami
         var subjects = await db
             .Subjects.Include(x => x.Exams.Where(e => !e.IsDone).OrderBy(e => e.Date))
             .Include(x => x.Sessions)
@@ -28,9 +27,11 @@ public class DashboardService
 
         var now = DateTime.Now;
         var today = now.Date;
-        var sevenDaysAgo = today.AddDays(-6);
 
-        // Základní statistiky
+        var sevenDaysAgo = today.AddDays(-6);
+        var thirtyDaysAgo = today.AddDays(-29);
+        var upcomingLimit = today.AddDays(14);
+
         var todayTotalMinutes = subjects
             .SelectMany(x => x.Sessions)
             .Where(x => x.CreatedAt.Date == today)
@@ -45,45 +46,117 @@ public class DashboardService
 
         var totalLifetimeCredits = lifetimeMinutes / 45;
 
-        var activeExams = exams.Where(x => !x.IsDone).ToList();
+        var activeExams = exams.Where(x => !x.IsDone).OrderBy(x => x.Date).ToList();
 
-        var todayExams = activeExams.Where(x => x.Date.Date == today).ToList();
+        var todayExams = activeExams.Where(x => x.Date.Date == today).OrderBy(x => x.Date).ToList();
 
-        // LOGIKA PRO SKLÁDANÝ TÝDENNÍ GRAF (Stacked Bar Chart)
-        var weeklySeries = Enumerable
-            .Range(0, 7)
+        var upcomingExams = activeExams
+            .Where(x => x.Date.Date > today && x.Date.Date <= upcomingLimit)
+            .OrderBy(x => x.Date)
+            .ToList();
+
+        var weeklySeries = BuildDailySeries(subjects, sevenDaysAgo, today);
+        var last30DaysSeries = BuildDailySeries(subjects, thirtyDaysAgo, today);
+        var allTimeSeries = BuildAllTimeSeries(subjects);
+        var subjectSeries = BuildSubjectSeries(subjects);
+
+        return new DashboardVm(
+            subjects,
+            exams,
+            activeExams,
+            todayExams,
+            upcomingExams,
+            todayTotalMinutes,
+            weekTotalMinutes,
+            lifetimeMinutes,
+            totalLifetimeCredits,
+            weeklySeries,
+            last30DaysSeries,
+            allTimeSeries,
+            subjectSeries
+        );
+    }
+
+    private static List<ChartItemVm> BuildDailySeries(
+        List<Subject> subjects,
+        DateTime startDate,
+        DateTime endDate
+    )
+    {
+        var days = Math.Max(1, (endDate.Date - startDate.Date).Days + 1);
+
+        return Enumerable
+            .Range(0, days)
             .Select(index =>
             {
-                var day = sevenDaysAgo.AddDays(index);
+                var day = startDate.Date.AddDays(index);
 
-                // Pro každý den najdeme všechna sezení a seskupíme je podle předmětu
                 var segments = subjects
-                    .SelectMany(s =>
-                        s.Sessions.Where(sess => sess.CreatedAt.Date == day.Date)
-                            .Select(sess => new
+                    .SelectMany(subject =>
+                        subject
+                            .Sessions.Where(session => session.CreatedAt.Date == day)
+                            .Select(session => new
                             {
-                                s.Name,
-                                s.Color,
-                                sess.Duration,
+                                subject.Name,
+                                subject.Color,
+                                session.Duration,
                             })
                     )
                     .GroupBy(x => new { x.Name, x.Color })
-                    .Select(g => new ChartSegmentVm(
-                        g.Key.Name,
-                        g.Sum(x => x.Duration),
-                        g.Key.Color
+                    .Select(group => new ChartSegmentVm(
+                        group.Key.Name,
+                        group.Sum(x => x.Duration),
+                        group.Key.Color
                     ))
                     .ToList();
 
                 return new ChartItemVm(day.ToString("dd.MM"), segments);
             })
             .ToList();
+    }
 
-        // LOGIKA PRO GRAF PODLE PŘEDMĚTŮ
-        var subjectSeries = subjects
+    private static List<ChartItemVm> BuildAllTimeSeries(List<Subject> subjects)
+    {
+        var sessions = subjects
+            .SelectMany(subject =>
+                subject.Sessions.Select(session => new
+                {
+                    subject.Name,
+                    subject.Color,
+                    session.Duration,
+                    Month = new DateTime(session.CreatedAt.Year, session.CreatedAt.Month, 1),
+                })
+            )
+            .ToList();
+
+        if (sessions.Count == 0)
+            return new List<ChartItemVm>();
+
+        return sessions
+            .GroupBy(x => x.Month)
+            .OrderBy(group => group.Key)
+            .Select(monthGroup =>
+            {
+                var segments = monthGroup
+                    .GroupBy(x => new { x.Name, x.Color })
+                    .Select(subjectGroup => new ChartSegmentVm(
+                        subjectGroup.Key.Name,
+                        subjectGroup.Sum(x => x.Duration),
+                        subjectGroup.Key.Color
+                    ))
+                    .ToList();
+
+                return new ChartItemVm(monthGroup.Key.ToString("MM.yyyy"), segments);
+            })
+            .ToList();
+    }
+
+    private static List<ChartItemVm> BuildSubjectSeries(List<Subject> subjects)
+    {
+        return subjects
             .Select(subject =>
             {
-                var totalMinutes = subject.Sessions.Sum(s => s.Duration);
+                var totalMinutes = subject.Sessions.Sum(session => session.Duration);
                 var segments = new List<ChartSegmentVm>();
 
                 if (totalMinutes > 0)
@@ -96,23 +169,8 @@ public class DashboardService
             .Where(x => x.TotalValue > 0)
             .OrderByDescending(x => x.TotalValue)
             .ToList();
-
-        return new DashboardVm(
-            subjects,
-            exams,
-            activeExams,
-            todayExams,
-            todayTotalMinutes,
-            weekTotalMinutes,
-            lifetimeMinutes,
-            totalLifetimeCredits,
-            weeklySeries,
-            subjectSeries
-        );
     }
 }
-
-// POMOCNÉ TŘÍDY PRO GRAFY
 
 public class ChartItemVm
 {
@@ -134,11 +192,13 @@ public record DashboardVm(
     List<Exam> Exams,
     List<Exam> ActiveExams,
     List<Exam> TodayExams,
+    List<Exam> UpcomingExams,
     int TodayTotalMinutes,
     int WeekTotalMinutes,
     int LifetimeMinutes,
     int TotalLifetimeCredits,
     List<ChartItemVm> WeeklySeries,
+    List<ChartItemVm> Last30DaysSeries,
+    List<ChartItemVm> AllTimeSeries,
     List<ChartItemVm> SubjectSeries
 );
-

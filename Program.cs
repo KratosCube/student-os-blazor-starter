@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.EntityFrameworkCore;
 using StudentOs.Blazor.Components;
@@ -29,6 +30,7 @@ using (var scope = app.Services.CreateScope())
     var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
     await using var db = await factory.CreateDbContextAsync();
     await db.Database.EnsureCreatedAsync();
+    await EnsureExamNoteColumnAsync(db);
 
     if (!db.Subjects.Any())
     {
@@ -144,4 +146,30 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
+static async Task EnsureExamNoteColumnAsync(AppDbContext db)
+{
+    var connection = db.Database.GetDbConnection();
+
+    if (connection.State != ConnectionState.Open)
+        await connection.OpenAsync();
+
+    var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    await using (var command = connection.CreateCommand())
+    {
+        command.CommandText = "PRAGMA table_info('Exams')";
+
+        await using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            columns.Add(reader.GetString(1));
+        }
+    }
+
+    if (!columns.Contains("Note"))
+    {
+        await db.Database.ExecuteSqlRawAsync("ALTER TABLE Exams ADD COLUMN Note TEXT");
+    }
+}
 app.Run();

@@ -61,6 +61,17 @@
                     <InputNumber @bind-Value="_form.Duration" class="ui-input" />
                     <ValidationMessage For="@(() => _form.Duration)" />
                 </div>
+                <div>
+    <label class="ui-label">Poznámka</label>
+    <InputTextArea @bind-Value="_form.Note"
+                   class="ui-input"
+                   placeholder="Např. téma zápočtu, rozsah učiva, místnost..."
+                   style="height:112px; padding-top:.75rem; padding-bottom:.75rem; resize:vertical;" />
+    <p class="ui-text-helper mt-2">
+        Volitelné. Maximálně 500 znaků.
+    </p>
+    <ValidationMessage For="@(() => _form.Note)" />
+</div>
 
                 @if (!string.IsNullOrWhiteSpace(_message))
                 {
@@ -118,6 +129,13 @@
                                             <div>@FormatDate(exam.Date)</div>
                                             <div>@FormatTime(exam.Date)</div>
                                         </div>
+                                        @if (!string.IsNullOrWhiteSpace(exam.Note))
+{
+    <p class="ui-text-secondary mt-3 pl-6"
+       style="white-space: pre-line; overflow-wrap: anywhere;">
+        @exam.Note
+    </p>
+}
                                     </div>
 
                                     <div class="flex flex-wrap gap-2">
@@ -213,7 +231,8 @@
         _form.Date = entity.Date;
         _form.Type = entity.Type;
         _form.Duration = entity.Duration;
-        _form.IsDone = entity.IsDone;
+_form.Note = entity.Note ?? string.Empty;
+_form.IsDone = entity.IsDone;
     }
 
 
@@ -258,8 +277,8 @@
             Date = _form.Date,
             Type = _form.Type,
             Duration = _form.Duration,
-            IsDone = _form.IsDone
-        };
+Note = NormalizeNote(_form.Note),
+IsDone = _form.IsDone        };
 
         if (_isEditing && _form.Id is not null)
         {
@@ -345,7 +364,8 @@
         _form.Date = DateTime.Now.AddDays(1);
         _form.Type = "confirmed";
         _form.Duration = 90;
-        _form.IsDone = false;
+_form.Note = string.Empty;
+_form.IsDone = false;
 
         _dateError = null;
 
@@ -362,6 +382,11 @@
 
     private string FormatTime(DateTime date) => date.ToString("HH:mm", _cs);
 
+private static string? NormalizeNote(string? note)
+{
+    var trimmed = note?.Trim();
+    return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+}
     private sealed class PlannerExamFormModel
     {
         public int? Id { get; set; }
@@ -375,8 +400,11 @@
         public string Type { get; set; } = "confirmed";
 
         [Range(15, 480, ErrorMessage = "Délka musí být v rozsahu 15 až 480 minut.")]
-        public int Duration { get; set; } = 90;
+public int Duration { get; set; } = 90;
 
-        public bool IsDone { get; set; }
+[MaxLength(500, ErrorMessage = "Poznámka může mít maximálně 500 znaků.")]
+public string Note { get; set; } = string.Empty;
+
+public bool IsDone { get; set; }
     }
 }

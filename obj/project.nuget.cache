@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "5HlUG7xg8Lo=",
+  "dgSpecHash": "NAjLWreYn18=",
   "success": true,
   "projectFilePath": "/home/xcroler/Documents/School/UUR/student-os-blazor-starter/StudentOs.Blazor.csproj",
   "expectedPackageFiles": [
     "/home/xcroler/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
-    "/home/xcroler/.nuget/packages/microsoft.aspnetcore.app.internal.assets/10.0.4/microsoft.aspnetcore.app.internal.assets.10.0.4.nupkg.sha512",
+    "/home/xcroler/.nuget/packages/microsoft.aspnetcore.app.internal.assets/10.0.8/microsoft.aspnetcore.app.internal.assets.10.0.8.nupkg.sha512",
     "/home/xcroler/.nuget/packages/microsoft.build/17.7.2/microsoft.build.17.7.2.nupkg.sha512",
     "/home/xcroler/.nuget/packages/microsoft.build.framework/17.14.28/microsoft.build.framework.17.14.28.nupkg.sha512",
     "/home/xcroler/.nuget/packages/microsoft.build.tasks.core/17.14.28/microsoft.build.tasks.core.17.14.28.nupkg.sha512",
@@ -58,7 +58,7 @@
     "/home/xcroler/.nuget/packages/system.security.cryptography.xml/9.0.0/system.security.cryptography.xml.9.0.0.nupkg.sha512",
     "/home/xcroler/.nuget/packages/system.security.permissions/9.0.0/system.security.permissions.9.0.0.nupkg.sha512",
     "/home/xcroler/.nuget/packages/system.windows.extensions/9.0.0/system.windows.extensions.9.0.0.nupkg.sha512",
-    "/home/xcroler/.nuget/packages/microsoft.aspnetcore.app.ref/10.0.4/microsoft.aspnetcore.app.ref.10.0.4.nupkg.sha512"
+    "/home/xcroler/.nuget/packages/microsoft.aspnetcore.app.ref/10.0.8/microsoft.aspnetcore.app.ref.10.0.8.nupkg.sha512"
   ],
   "logs": [
     {

@@ -11,6 +11,7 @@
                 <path d="M12 9v4l2.5 2.5"></path>
                 <path d="M9 3h6"></path>
             </svg>
+
             <h3 class="ui-card-title">
                 @(_mode == TimerMode.Work ? "Focus Mode" : "Pauza")
             </h3>
@@ -29,9 +30,10 @@
                     class="ui-select"
                     disabled="@_isActive">
                 <option value="">Vyber předmět</option>
-                @foreach (var s in Subjects)
+
+                @foreach (var subject in Subjects)
                 {
-                    <option value="@s.Id">@s.Name</option>
+                    <option value="@subject.Id">@subject.Name</option>
                 }
             </select>
         </div>
@@ -87,17 +89,16 @@
     public List<Subject> Subjects { get; set; } = new();
 
     private int? _selectedSubjectId;
-    //private int _timeLeftSeconds = 25 * 60;
-
-    private int _timeLeftSeconds = 25*60;
+    private int _timeLeftSeconds = 25 * 60;
     private bool _isActive;
     private TimerMode _mode = TimerMode.Work;
-    private System.Threading.Timer? _timer;
+    private CancellationTokenSource? _tickerCts;
     private long? _targetUnixMs;
     private bool _loaded;
     private bool _finishing;
-    private int _pauseTime = 5;
-    private int _mainTime = 25;
+
+    private readonly int _pauseTime = 5;
+    private readonly int _mainTime = 25;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -105,14 +106,19 @@
             return;
 
         var savedSubject = await Storage.GetStringAsync("timerSubject");
+
         if (int.TryParse(savedSubject, out var subjectId))
+        {
             _selectedSubjectId = subjectId;
+        }
 
         var savedTarget = await Storage.GetStringAsync("timerTarget");
+
         if (long.TryParse(savedTarget, out var targetUnixMs))
         {
             _targetUnixMs = targetUnixMs;
-            var diff = (int)Math.Ceiling((targetUnixMs - DateTimeOffset.Now.ToUnixTimeMilliseconds()) / 1000d);
+
+            var diff = GetRemainingSeconds(targetUnixMs);
 
             if (diff > 0)
             {
@@ -138,14 +144,20 @@
         if (int.TryParse(raw, out var value))
         {
             _selectedSubjectId = value;
+
             if (_loaded)
+            {
                 await Storage.SetStringAsync("timerSubject", value.ToString());
+            }
         }
         else
         {
             _selectedSubjectId = null;
+
             if (_loaded)
+            {
                 await Storage.RemoveAsync("timerSubject");
+            }
         }
     }
 
@@ -156,54 +168,112 @@
             if (_mode == TimerMode.Work && _selectedSubjectId is null)
                 return;
 
+            await TryUnlockSoundAsync();
+
             _targetUnixMs = DateTimeOffset.Now.ToUnixTimeMilliseconds() + (_timeLeftSeconds * 1000L);
             await Storage.SetStringAsync("timerTarget", _targetUnixMs.Value.ToString());
 
             if (_selectedSubjectId is not null)
+            {
                 await Storage.SetStringAsync("timerSubject", _selectedSubjectId.Value.ToString());
+            }
 
             _isActive = true;
             StartTicker();
+
             return;
         }
 
         _isActive = false;
-        StopTicker();
         _targetUnixMs = null;
+
+        StopTicker();
+
         await Storage.RemoveAsync("timerTarget");
+        StateHasChanged();
     }
 
     private async Task ResetTimerAsync()
     {
         _isActive = false;
         _targetUnixMs = null;
+
         StopTicker();
+
         _timeLeftSeconds = GetDefaultSeconds();
+
         await Storage.RemoveAsync("timerTarget");
+
         StateHasChanged();
     }
 
     private async Task SwitchModeAsync()
     {
-        _mode = _mode == TimerMode.Work ? TimerMode.Break : TimerMode.Work;
+        _mode = _mode == TimerMode.Work
+            ? TimerMode.Break
+            : TimerMode.Work;
+
         _isActive = false;
         _targetUnixMs = null;
+
         StopTicker();
+
         _timeLeftSeconds = GetDefaultSeconds();
+
         await Storage.RemoveAsync("timerTarget");
+
         StateHasChanged();
     }
 
     private void StartTicker()
     {
         StopTicker();
-        _timer = new System.Threading.Timer(async _ => await TickAsync(), null, 1000, 1000);
+
+        _tickerCts = new CancellationTokenSource();
+        _ = RunTickerAsync(_tickerCts.Token);
+    }
+
+    private async Task RunTickerAsync(CancellationToken cancellationToken)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(250));
+
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellationToken))
+            {
+                await InvokeAsync(TickAsync);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Timer byl zastaven ručně.
+        }
+        catch (ObjectDisposedException)
+        {
+            // Komponenta už může být zničená.
+        }
+        catch (InvalidOperationException)
+        {
+            // Blazor circuit / dispatcher už nemusí být dostupný.
+        }
     }
 
     private void StopTicker()
     {
-        _timer?.Dispose();
-        _timer = null;
+        if (_tickerCts is null)
+            return;
+
+        try
+        {
+            _tickerCts.Cancel();
+        }
+        catch
+        {
+            // Zastavení timeru není kritické.
+        }
+
+        _tickerCts.Dispose();
+        _tickerCts = null;
     }
 
     private async Task TickAsync()
@@ -211,18 +281,25 @@
         if (!_isActive || _targetUnixMs is null)
             return;
 
-        var diff = (int)Math.Ceiling((_targetUnixMs.Value - DateTimeOffset.Now.ToUnixTimeMilliseconds()) / 1000d);
+        var diff = GetRemainingSeconds(_targetUnixMs.Value);
 
         if (diff <= 0)
         {
-            _timeLeftSeconds = 0;
-            await InvokeAsync(StateHasChanged);
+            if (_timeLeftSeconds != 0)
+            {
+                _timeLeftSeconds = 0;
+                StateHasChanged();
+            }
+
             await FinishTimerAsync();
             return;
         }
 
+        if (diff == _timeLeftSeconds)
+            return;
+
         _timeLeftSeconds = diff;
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
     }
 
     private async Task FinishTimerAsync()
@@ -232,60 +309,131 @@
 
         _finishing = true;
 
+        var finishedMode = _mode;
+
         try
         {
             _isActive = false;
             _targetUnixMs = null;
+
             StopTicker();
+
             await Storage.RemoveAsync("timerTarget");
 
-            if (_mode == TimerMode.Work && _selectedSubjectId is not null)
+            if (finishedMode == TimerMode.Work && _selectedSubjectId is not null)
             {
                 await StudySessionService.AddAsync(new StudySession
                 {
                     SubjectId = _selectedSubjectId.Value,
-                    Duration = _mainTime,   //25
+                    Duration = _mainTime,
                     CreatedAt = DateTime.Now
                 });
             }
 
-            try{
-    await JS.InvokeVoidAsync("alert", _mode == TimerMode.Work
-        ? "Hotovo! Dej si pauzu."
-        : "Pauza končí. Zpátky do práce.");
+            await TryPlayBeepAsync();
 
-await SwitchModeAsync();
-}
-catch (TaskCanceledException)
-{
-    // uživatel odešel / reconnect → ignoruj
-}
-            _timeLeftSeconds = GetDefaultSeconds();
-            await InvokeAsync(StateHasChanged);
+            await TryShowFinishAlertAsync(finishedMode);
+
+            await SwitchModeAsync();
         }
         finally
         {
             _finishing = false;
         }
     }
-// Opravená metoda vracící sekundy
-private int GetDefaultSeconds() => 
-    _mode == TimerMode.Work ? _mainTime * 60 : _pauseTime * 60;
+
+    private async Task TryUnlockSoundAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("appSound.unlock");
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (JSException)
+        {
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private async Task TryPlayBeepAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("appSound.beep");
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (JSException)
+        {
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private async Task TryShowFinishAlertAsync(TimerMode finishedMode)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                finishedMode == TimerMode.Work
+                    ? "Hotovo! Dej si pauzu."
+                    : "Pauza končí. Zpátky do práce."
+            );
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (JSException)
+        {
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private static int GetRemainingSeconds(long targetUnixMs)
+    {
+        var remainingMs = targetUnixMs - DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
+        if (remainingMs <= 0)
+            return 0;
+
+        return (int)Math.Ceiling(remainingMs / 1000d);
+    }
+
+    private int GetDefaultSeconds()
+    {
+        return _mode == TimerMode.Work
+            ? _mainTime * 60
+            : _pauseTime * 60;
+    }
 
     private static string FormatTime(int seconds)
     {
-        var m = seconds / 60;
-        var s = seconds % 60;
-        return $"{m:00}:{s:00}";
+        var minutes = seconds / 60;
+        var restSeconds = seconds % 60;
+
+        return $"{minutes:00}:{restSeconds:00}";
     }
 
     private string GetStartPauseButtonClass()
     {
         if (_isActive)
+        {
             return "inline-flex h-12 min-w-[128px] items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 text-lg font-semibold text-white transition-colors hover:bg-amber-600";
+        }
 
         if (_mode == TimerMode.Work && _selectedSubjectId is null)
+        {
             return "inline-flex h-12 min-w-[128px] items-center justify-center gap-2 rounded-xl bg-slate-300 px-5 text-lg font-semibold text-slate-500 dark:bg-slate-700 dark:text-slate-400 cursor-not-allowed";
+        }
 
         return "inline-flex h-12 min-w-[128px] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-lg font-semibold text-white transition-colors hover:bg-indigo-700";
     }

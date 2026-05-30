@@ -15,6 +15,9 @@ public class Exam
     [Range(15, 480)]
     public int Duration { get; set; } = 90;
 
+    [StringLength(500, ErrorMessage = "Poznámka může mít maximálně 500 znaků.")]
+    public string? Note { get; set; }
+
     public bool IsDone { get; set; }
 
     public int? SubjectId { get; set; }

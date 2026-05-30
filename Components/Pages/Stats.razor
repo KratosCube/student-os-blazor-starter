@@ -20,9 +20,9 @@ else
 
         <section class="grid gap-4 md:grid-cols-3">
             <div class="ui-card p-5">
-                <p class="ui-metric-label">Týden celkem</p>
+                <p class="ui-metric-label">Vybraný týden</p>
                 <p class="ui-metric-value mt-3">
-                    @FormatMinutes(_vm.WeekTotalMinutes)
+                    @FormatMinutes(SelectedWeekMinutes)
                 </p>
             </div>
 
@@ -39,9 +39,48 @@ else
             </div>
         </section>
 
-        <StudyChartSwitcher
-            WeeklySeries="_vm.WeeklySeries"
-            SubjectSeries="_vm.SubjectSeries" />
+        <StudyBarChart
+            Title="@ChartTitle"
+            Description="@ChartDescription"
+            Items="@ChartItems">
+            <HeaderActions>
+                <button type="button"
+                        class="@GetModeButtonClass(StatsChartMode.Week)"
+                        @onclick="() => SetMode(StatsChartMode.Week)">
+                    Po týdnu
+                </button>
+
+                <button type="button"
+                        class="@GetModeButtonClass(StatsChartMode.Subjects)"
+                        @onclick="() => SetMode(StatsChartMode.Subjects)">
+                    Podle předmětů
+                </button>
+
+                @if (_mode == StatsChartMode.Week)
+                {
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button"
+                                class="ui-btn-secondary"
+                                title="Předchozí týden"
+                                @onclick="PreviousWeek">
+                            ←
+                        </button>
+
+                        <span class="ui-btn-secondary cursor-default">
+                            @_weekStart.ToString("d. M.", _cs) – @_weekStart.AddDays(6).ToString("d. M. yyyy", _cs)
+                        </span>
+
+                        <button type="button"
+                                class="@NextWeekButtonClass"
+                                title="Další týden"
+                                disabled="@IsCurrentWeekSelected"
+                                @onclick="NextWeek">
+                            →
+                        </button>
+                    </div>
+                }
+            </HeaderActions>
+        </StudyBarChart>
 
         <RewardShop TotalLifetimeCredits="_vm.TotalLifetimeCredits" />
     </div>
@@ -50,9 +89,110 @@ else
 @code {
     private DashboardVm? _vm;
 
+    private StatsChartMode _mode = StatsChartMode.Week;
+    private DateTime _weekStart = GetStartOfWeek(DateTime.Today);
+
+    private readonly System.Globalization.CultureInfo _cs = new("cs-CZ");
+
     protected override async Task OnInitializedAsync()
     {
         _vm = await DashboardService.GetDashboardAsync();
+        _weekStart = GetStartOfWeek(DateTime.Today);
+    }
+
+    private List<ChartItemVm> ChartItems => _vm is null
+        ? new List<ChartItemVm>()
+        : _mode switch
+        {
+            StatsChartMode.Subjects => _vm.SubjectSeries,
+            _ => SelectedWeekSeries
+        };
+
+    private List<ChartItemVm> SelectedWeekSeries => _vm is null
+        ? new List<ChartItemVm>()
+        : BuildWeekSeries(_vm.Subjects, _weekStart);
+
+    private int SelectedWeekMinutes => SelectedWeekSeries.Sum(x => x.TotalValue);
+
+    private string ChartTitle => _mode switch
+    {
+        StatsChartMode.Subjects => "Studium podle předmětů",
+        _ => "Studium po týdnech"
+    };
+
+    private string ChartDescription => _mode switch
+    {
+        StatsChartMode.Subjects => "Souhrn celkového času podle jednotlivých předmětů.",
+        _ => $"Týden od {_weekStart.ToString("d. M. yyyy", _cs)} do {_weekStart.AddDays(6).ToString("d. M. yyyy", _cs)}."
+    };
+
+    private bool IsCurrentWeekSelected => _weekStart.Date >= GetStartOfWeek(DateTime.Today);
+
+    private string NextWeekButtonClass => IsCurrentWeekSelected
+        ? "ui-btn-secondary cursor-not-allowed opacity-50"
+        : "ui-btn-secondary";
+
+    private void SetMode(StatsChartMode mode)
+    {
+        _mode = mode;
+    }
+
+    private void PreviousWeek()
+    {
+        _weekStart = _weekStart.AddDays(-7);
+    }
+
+    private void NextWeek()
+    {
+        if (IsCurrentWeekSelected)
+            return;
+
+        _weekStart = _weekStart.AddDays(7);
+    }
+
+    private string GetModeButtonClass(StatsChartMode mode)
+    {
+        return _mode == mode
+            ? "ui-btn-primary"
+            : "ui-btn-secondary";
+    }
+
+    private static List<ChartItemVm> BuildWeekSeries(List<Subject> subjects, DateTime weekStart)
+    {
+        return Enumerable
+            .Range(0, 7)
+            .Select(index =>
+            {
+                var day = weekStart.Date.AddDays(index);
+
+                var segments = subjects
+                    .SelectMany(subject =>
+                        subject.Sessions
+                            .Where(session => session.CreatedAt.Date == day)
+                            .Select(session => new
+                            {
+                                subject.Name,
+                                subject.Color,
+                                session.Duration
+                            })
+                    )
+                    .GroupBy(x => new { x.Name, x.Color })
+                    .Select(group => new ChartSegmentVm(
+                        group.Key.Name,
+                        group.Sum(x => x.Duration),
+                        group.Key.Color
+                    ))
+                    .ToList();
+
+                return new ChartItemVm(day.ToString("dd.MM"), segments);
+            })
+            .ToList();
+    }
+
+    private static DateTime GetStartOfWeek(DateTime date)
+    {
+        var diff = ((int)date.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        return date.Date.AddDays(-diff);
     }
 
     private static string FormatMinutes(int totalMinutes)
@@ -60,5 +200,11 @@ else
         var hours = totalMinutes / 60;
         var minutes = totalMinutes % 60;
         return $"{hours}h {minutes}m";
+    }
+
+    private enum StatsChartMode
+    {
+        Week,
+        Subjects
     }
 }

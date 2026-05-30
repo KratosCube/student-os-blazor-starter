@@ -17,34 +17,32 @@ public class ExamService
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
 
-        return await db.Exams
-            .Include(x => x.Subject)
-            .OrderBy(x => x.Date)
-            .ToListAsync();
+        return await db.Exams.Include(x => x.Subject).OrderBy(x => x.Date).ToListAsync();
     }
 
     public async Task<Exam?> GetByIdAsync(int id)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
 
-        return await db.Exams
-            .Include(x => x.Subject)
-            .FirstOrDefaultAsync(x => x.Id == id);
+        return await db.Exams.Include(x => x.Subject).FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task AddAsync(Exam exam)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
 
-        db.Exams.Add(new Exam
-        {
-            SubjectId = exam.SubjectId,
-            Date = exam.Date,
-            Type = exam.Type,
-            Duration = exam.Duration,
-            IsDone = exam.IsDone,
-            LegacyName = exam.LegacyName
-        });
+        db.Exams.Add(
+            new Exam
+            {
+                SubjectId = exam.SubjectId,
+                Date = exam.Date,
+                Type = exam.Type,
+                Duration = exam.Duration,
+                Note = exam.Note,
+                IsDone = exam.IsDone,
+                LegacyName = exam.LegacyName,
+            }
+        );
 
         await db.SaveChangesAsync();
     }
@@ -61,6 +59,7 @@ public class ExamService
         entity.Date = exam.Date;
         entity.Type = exam.Type;
         entity.Duration = exam.Duration;
+        entity.Note = exam.Note;
         entity.IsDone = exam.IsDone;
         entity.LegacyName = exam.LegacyName;
 
@@ -91,3 +90,4 @@ public class ExamService
         await db.SaveChangesAsync();
     }
 }
+

@@ -408,8 +408,6 @@
 /home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/compressed/asxh068a0w-{0}-z6zcfct1dw-z6zcfct1dw.gz
 /home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/compressed/unbihian11-{0}-1nf6fdzijt-1nf6fdzijt.gz
 /home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/compressed/zwm5nsuzsg-{0}-u5lk1jxtep-u5lk1jxtep.gz
-/home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/compressed/qnfz4rkj31-{0}-mgww215af1-mgww215af1.gz
-/home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/compressed/m1hegmkq5k-{0}-dy8h75y8gn-dy8h75y8gn.gz
 /home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/staticwebassets.build.json
 /home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/staticwebassets.build.json.cache
 /home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/staticwebassets.development.json
@@ -421,3 +419,6 @@
 /home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/StudentOs.Blazor.pdb
 /home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/StudentOs.Blazor.genruntimeconfig.cache
 /home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/ref/StudentOs.Blazor.dll
+/home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/compressed/i2btx16rog-{0}-vnr8rcaea6-vnr8rcaea6.gz
+/home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/compressed/qnfz4rkj31-{0}-ej96puwv3k-ej96puwv3k.gz
+/home/xcroler/Documents/School/UUR/student-os-blazor-starter/obj/Debug/net10.0/compressed/m1hegmkq5k-{0}-cj5793hgrt-cj5793hgrt.gz
