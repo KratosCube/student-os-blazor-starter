@@ -1,65 +1,61 @@
 # Student OS
 
-Student OS je webová aplikace pro plánování zkoušek, sledování studia a motivaci během semestru.
+Student OS je webová aplikace vytvořená jako semestrální práce do předmětu KIV/UUR.
 
-Autor: Václav Chuchlík  
-Semestrální práce do předmětu KIV/UUR
+Aplikace slouží k plánování termínů zkoušek, evidenci studijních aktivit a zobrazení základních statistik studia.
 
-## Co aplikace umí
+Autor: Václav Chuchlík
 
-Aplikace obsahuje čtyři hlavní části:
+## Hlavní části aplikace
 
-Dashboard  
-Rychlý přehled dne, focus timer, nejbližší termíny, týdenní graf, poznámky, denní cíl a hydratace.
+Aplikace obsahuje čtyři hlavní pohledy:
 
-Planner  
-Správa termínů zkoušek a zápočtů. U termínu lze nastavit předmět, datum, čas, typ, délku, stav a poznámku.
+- Dashboard – denní přehled, focus timer, nejbližší termíny a týdenní graf
+- Planner – správa termínů zkoušek a zápočtů
+- Subjects – správa předmětů a ruční evidence studia
+- Stats – statistiky podle týdnů a předmětů, kredity a odměny
 
-Subjects  
-Správa předmětů a ruční zapisování studijních session.
-
-Stats  
-Statistiky studia podle týdnů a podle předmětů, kredity a reward shop.
-
-## Technologie
-
-Projekt používá:
+## Použité technologie
 
 - Blazor Web App
 - .NET 10
 - C#
 - Entity Framework Core
 - SQLite
-- localStorage
 - Tailwind CSS
+- localStorage
+
+## Požadavky pro spuštění
+
+Pro spuštění aplikace je potřeba mít nainstalované:
+
+- .NET SDK 10
+- Node.js
+- npm
 
 ## Spuštění aplikace
 
-Nejdřív obnov .NET balíčky:
+V kořenové složce projektu spusťte následující příkazy:
 
 ```bash
 dotnet restore
 ```
 
-Nainstaluj frontend závislosti:
-
 ```bash
 npm install
 ```
-
-Sestav CSS:
 
 ```bash
 npm run css:build
 ```
 
-Spusť aplikaci:
-
 ```bash
 dotnet run
 ```
 
-Po spuštění se v terminálu vypíše adresa aplikace, například:
+Po spuštění aplikace se v terminálu zobrazí lokální adresa, na které je aplikace dostupná.
+
+Například:
 
 ```text
 http://localhost:5000
@@ -73,7 +69,13 @@ https://localhost:5001
 
 ## Vývoj CSS
 
-Pokud upravíš styly v `Styles/input.css`, znovu spusť:
+Zdrojové styly jsou v souboru:
+
+```text
+Styles/input.css
+```
+
+Po úpravě stylů je potřeba znovu sestavit CSS:
 
 ```bash
 npm run css:build
@@ -93,9 +95,9 @@ Aplikace používá lokální SQLite databázi:
 student-os.db
 ```
 
-Databáze se vytvoří automaticky při prvním spuštění aplikace a naplní se ukázkovými daty.
+Databáze se vytvoří automaticky při prvním spuštění aplikace.
 
-Pokud chceš začít s čistou databází, smaž soubory:
+Pokud je potřeba aplikaci spustit s čistou databází, lze odstranit soubory:
 
 ```text
 student-os.db
@@ -103,19 +105,15 @@ student-os.db-shm
 student-os.db-wal
 ```
 
-a spusť aplikaci znovu.
+Při dalším spuštění se databáze vytvoří znovu.
 
 ## Struktura projektu
 
 ```text
 Components/Pages      hlavní stránky aplikace
 Components/Shared     sdílené komponenty
-Services              práce s daty a aplikační logika
-Data                  databázový kontext a modely
-Styles                zdrojové CSS/Tailwind styly
+Services              aplikační logika a práce s daty
+Data                  datové modely a databázový kontext
+Styles                zdrojové styly
 wwwroot/js            JavaScript helpery
 ```
-
-## Poznámka
-
-Projekt je lokální studentská aplikace. Hlavní data se ukládají do SQLite databáze, menší uživatelská nastavení a stav některých komponent se ukládají do `localStorage`.
