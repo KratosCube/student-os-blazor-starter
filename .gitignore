@@ -6,6 +6,13 @@ obj/
 *.db-wal
 *.sync-conflict-*.db
 
+.vs/
 .vscode/
 .idea/
+*.user
+*.suo
 .DS_Store
+
+*.log
+
+node_modules/
