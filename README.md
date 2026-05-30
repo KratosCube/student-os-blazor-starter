@@ -61,32 +61,6 @@ Například:
 http://localhost:5000
 ```
 
-nebo:
-
-```text
-https://localhost:5001
-```
-
-## Vývoj CSS
-
-Zdrojové styly jsou v souboru:
-
-```text
-Styles/input.css
-```
-
-Po úpravě stylů je potřeba znovu sestavit CSS:
-
-```bash
-npm run css:build
-```
-
-Pro průběžné sledování změn lze použít:
-
-```bash
-npm run css:watch
-```
-
 ## Databáze
 
 Aplikace používá lokální SQLite databázi:
@@ -96,16 +70,6 @@ student-os.db
 ```
 
 Databáze se vytvoří automaticky při prvním spuštění aplikace.
-
-Pokud je potřeba aplikaci spustit s čistou databází, lze odstranit soubory:
-
-```text
-student-os.db
-student-os.db-shm
-student-os.db-wal
-```
-
-Při dalším spuštění se databáze vytvoří znovu.
 
 ## Struktura projektu
 
