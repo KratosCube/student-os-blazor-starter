@@ -39,3 +39,83 @@ Nejdřív obnov .NET balíčky:
 
 ```bash
 dotnet restore
+```
+
+Nainstaluj frontend závislosti:
+
+```bash
+npm install
+```
+
+Sestav CSS:
+
+```bash
+npm run css:build
+```
+
+Spusť aplikaci:
+
+```bash
+dotnet run
+```
+
+Po spuštění se v terminálu vypíše adresa aplikace, například:
+
+```text
+http://localhost:5000
+```
+
+nebo:
+
+```text
+https://localhost:5001
+```
+
+## Vývoj CSS
+
+Pokud upravíš styly v `Styles/input.css`, znovu spusť:
+
+```bash
+npm run css:build
+```
+
+Pro průběžné sledování změn lze použít:
+
+```bash
+npm run css:watch
+```
+
+## Databáze
+
+Aplikace používá lokální SQLite databázi:
+
+```text
+student-os.db
+```
+
+Databáze se vytvoří automaticky při prvním spuštění aplikace a naplní se ukázkovými daty.
+
+Pokud chceš začít s čistou databází, smaž soubory:
+
+```text
+student-os.db
+student-os.db-shm
+student-os.db-wal
+```
+
+a spusť aplikaci znovu.
+
+## Struktura projektu
+
+```text
+Components/Pages      hlavní stránky aplikace
+Components/Shared     sdílené komponenty
+Services              práce s daty a aplikační logika
+Data                  databázový kontext a modely
+Styles                zdrojové CSS/Tailwind styly
+wwwroot/js            JavaScript helpery
+```
+
+## Poznámka
+
+Projekt je lokální studentská aplikace. Hlavní data se ukládají do SQLite databáze, menší uživatelská nastavení a stav některých komponent se ukládají do `localStorage`.
