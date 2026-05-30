@@ -6,13 +6,28 @@
         <aside class="w-full shrink-0 md:w-[260px]">
             <div class="sticky top-5">
                 <div class="ui-card p-5">
-                    <div class="mb-5 flex items-start justify-between">
-                        <div>
+                    <div class="mb-5 flex items-start justify-between gap-3">
+                        <div class="min-w-0">
                             <p class="ui-eyebrow">Student OS</p>
+
                             <h1 class="mt-1 text-[2rem] font-bold leading-none tracking-tight">
                                 Seminární práce
                             </h1>
+
+                            <div class="mt-4">
+                                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                                    @StudentName
+                                </p>
+
+                                <p class="ui-text-helper mt-1">
+                                    Osobní číslo:
+                                    <span class="font-semibold text-slate-700 dark:text-slate-300">
+                                        @StudentNumber
+                                    </span>
+                                </p>
+                            </div>
                         </div>
+
                         <ThemeToggle />
                     </div>
 
@@ -53,6 +68,19 @@
                             Stats
                         </NavLink>
                     </nav>
+
+                    <div class="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
+                        <button type="button"
+                                class="nav-item w-full"
+                                @onclick="OpenAboutDialog">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="9"></circle>
+                                <path d="M12 10v6"></path>
+                                <path d="M12 7h.01"></path>
+                            </svg>
+                            O aplikaci
+                        </button>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -61,4 +89,164 @@
             @Body
         </main>
     </div>
+
+    @if (_showAboutDialog)
+    {
+        <div role="dialog"
+             aria-modal="true"
+             aria-labelledby="about-dialog-title"
+             @onclick="CloseAboutDialog"
+             class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+            <div class="ui-card w-full max-w-2xl p-6"
+                 @onclick:stopPropagation="true">
+                <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-eyebrow">O aplikaci</p>
+
+                        <h2 id="about-dialog-title" class="ui-section-title mt-2">
+                            Student OS
+                        </h2>
+
+                        <p class="ui-text-secondary mt-2">
+                            Aplikace pro plánování zkoušek a sledování studia.
+                        </p>
+                    </div>
+
+                    <button type="button"
+                            class="ui-btn-secondary"
+                            @onclick="CloseAboutDialog">
+                        Zavřít
+                    </button>
+                </div>
+
+                <div class="space-y-5">
+                    <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                            Autor
+                        </p>
+
+                        <p class="ui-text-secondary mt-2">
+                            @StudentName
+                        </p>
+
+                        <p class="ui-text-helper mt-1">
+                            Osobní číslo:
+                            <span class="font-semibold text-slate-700 dark:text-slate-300">
+                                @StudentNumber
+                            </span>
+                        </p>
+                    </section>
+
+                    <section>
+                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                            Účel aplikace
+                        </p>
+
+                        <p class="ui-text-secondary mt-2">
+                            Student OS sjednocuje plánování termínů, sledování studia,
+                            focus timer, statistiky a motivační odměny do jednoho
+                            přehledného systému pro studenta.
+                        </p>
+                    </section>
+
+                    <section>
+                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                            Hlavní části aplikace
+                        </p>
+
+                        <div class="mt-3 grid gap-3 md:grid-cols-2">
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                                <div class="mb-2 flex items-center justify-between gap-3">
+                                    <p class="font-semibold text-slate-800 dark:text-slate-100">
+                                        Dashboard
+                                    </p>
+
+                                    <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                        Přehled
+                                    </span>
+                                </div>
+
+                                <p class="ui-text-helper">
+                                    Přehled dne, focus timer, nejbližší termíny a rychlé poznámky.
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                                <div class="mb-2 flex items-center justify-between gap-3">
+                                    <p class="font-semibold text-slate-800 dark:text-slate-100">
+                                        Planner
+                                    </p>
+
+                                    <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                        Termíny
+                                    </span>
+                                </div>
+
+                                <p class="ui-text-helper">
+                                    Správa zkoušek, termínů, stavů a poznámek.
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                                <div class="mb-2 flex items-center justify-between gap-3">
+                                    <p class="font-semibold text-slate-800 dark:text-slate-100">
+                                        Subjects
+                                    </p>
+
+                                    <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                        Data
+                                    </span>
+                                </div>
+
+                                <p class="ui-text-helper">
+                                    Předměty, ruční záznam studia a hierarchický přehled.
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/50">
+                                <div class="mb-2 flex items-center justify-between gap-3">
+                                    <p class="font-semibold text-slate-800 dark:text-slate-100">
+                                        Stats
+                                    </p>
+
+                                    <span class="ui-badge bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                        Grafy
+                                    </span>
+                                </div>
+
+                                <p class="ui-text-helper">
+                                    Statistiky podle týdnů a předmětů, kredity a reward shop.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="button"
+                            class="ui-btn-primary"
+                            @onclick="CloseAboutDialog">
+                        Rozumím
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
 </div>
+
+@code {
+    private const string StudentName = "Václav Chuchlík";
+    private const string StudentNumber = "A25B0496P";
+
+    private bool _showAboutDialog;
+
+    private void OpenAboutDialog()
+    {
+        _showAboutDialog = true;
+    }
+
+    private void CloseAboutDialog()
+    {
+        _showAboutDialog = false;
+    }
+}
