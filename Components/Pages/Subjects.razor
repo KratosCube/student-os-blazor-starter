@@ -71,13 +71,11 @@ else
                     </div>
 
                     @if (!string.IsNullOrWhiteSpace(_subjectMessage))
-                    {
-                        <p class="@(_subjectMessageSuccess
-                            ? "rounded-2xl bg-emerald-900/20 px-4 py-3 text-sm text-emerald-300"
-                            : "rounded-2xl bg-rose-900/20 px-4 py-3 text-sm text-rose-300")">
-                            @_subjectMessage
-                        </p>
-                    }
+                        {
+                             <p class="@GetSubjectMessageClass()">
+                                  @_subjectMessage
+                             </p>
+}
 
                     <div class="flex gap-3">
                         <button type="submit" class="ui-btn-primary">
@@ -143,11 +141,9 @@ else
 
                     @if (!string.IsNullOrWhiteSpace(_sessionMessage))
                     {
-                        <p class="@(_sessionMessageSuccess
-                            ? "rounded-2xl bg-emerald-900/20 px-4 py-3 text-sm text-emerald-300"
-                            : "rounded-2xl bg-rose-900/20 px-4 py-3 text-sm text-rose-300")">
-                            @_sessionMessage
-                        </p>
+                         <p class="@GetSessionMessageClass()">
+                         @_sessionMessage
+                          </p>
                     }
 
                     <button type="submit" class="ui-btn-primary">
@@ -368,6 +364,26 @@ else
 
         await ReloadAsync();
         ResetSubjectForm(keepMessage: true);
+    }
+    
+    private string GetSubjectMessageClass()
+    {
+        if (_subjectMessageSuccess)
+        {
+            return "ui-alert-success";
+        }
+
+        return "ui-alert-danger";
+    }
+
+    private string GetSessionMessageClass()
+    {
+        if (_sessionMessageSuccess)
+        {
+            return "ui-alert-success";
+        }
+
+        return "ui-alert-danger";
     }
 
     // Uloží ruční studijní session pro vybraný předmět

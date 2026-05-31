@@ -1,14 +1,24 @@
+@*
+    Hlavní navigace aplikace.
+*@
 <nav class="space-y-1.5">
     <NavLink href="/" Match="NavLinkMatch.All" class="nav-item" ActiveClass="nav-item-active">
-        Dashboard
+        <i class="bi bi-house-door nav-icon" aria-hidden="true"></i>
+        <span>Dashboard</span>
     </NavLink>
+
     <NavLink href="/planner" class="nav-item" ActiveClass="nav-item-active">
-        Planner
+        <i class="bi bi-calendar-event nav-icon" aria-hidden="true"></i>
+        <span>Planner</span>
     </NavLink>
+
     <NavLink href="/subjects" class="nav-item" ActiveClass="nav-item-active">
-        Subjects
+        <i class="bi bi-journal-text nav-icon" aria-hidden="true"></i>
+        <span>Subjects</span>
     </NavLink>
+
     <NavLink href="/stats" class="nav-item" ActiveClass="nav-item-active">
-        Stats
+        <i class="bi bi-bar-chart-line nav-icon" aria-hidden="true"></i>
+        <span>Stats</span>
     </NavLink>
 </nav>

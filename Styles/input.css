@@ -553,6 +553,14 @@ body {
   .dark .ui-hydration-drink-btn-ready:hover {
     background: rgb(12 74 110 / 0.5);
   }
+
+  .ui-alert-success {
+    @apply rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300;
+  }
+
+  .ui-alert-danger {
+    @apply rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-900/20 dark:text-rose-300;
+  }
 }
 
 /* Animace pro hladinu vody v HydrationTrackeru. */
