@@ -29,9 +29,11 @@ using (var scope = app.Services.CreateScope())
 {
     var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
     await using var db = await factory.CreateDbContextAsync();
+    // Při startu aplikace se vytvoří SQLite databáze, pokud ještě neexistuje.
     await db.Database.EnsureCreatedAsync();
+    // Tato kontrola umožní spustit aplikaci i nad starší lokální databází bez sloupce Note.
     await EnsureExamNoteColumnAsync(db);
-
+    // Pokud je databáze prázdná, vloží se ukázková data.
     if (!db.Subjects.Any())
     {
         var dma = new Subject { Name = "DMA", Color = "#f59e0b" };
@@ -267,6 +269,7 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
+// Kontroluje existenci sloupce Note v tabulce Exams a případně ho doplní.
 static async Task EnsureExamNoteColumnAsync(AppDbContext db)
 {
     var connection = db.Database.GetDbConnection();

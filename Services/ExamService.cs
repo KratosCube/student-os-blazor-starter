@@ -13,6 +13,7 @@ public class ExamService
         _dbFactory = dbFactory;
     }
 
+    // Načte všechny termíny z databáze a připojí k nim jejich předmět
     public async Task<List<Exam>> GetAllAsync()
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -20,6 +21,7 @@ public class ExamService
         return await db.Exams.Include(x => x.Subject).OrderBy(x => x.Date).ToListAsync();
     }
 
+    // Načte jeden konkrétní termín podle Id
     public async Task<Exam?> GetByIdAsync(int id)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -27,6 +29,7 @@ public class ExamService
         return await db.Exams.Include(x => x.Subject).FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    // Přidá nový termín do databáze
     public async Task AddAsync(Exam exam)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -47,6 +50,7 @@ public class ExamService
         await db.SaveChangesAsync();
     }
 
+    // Upraví existující termín
     public async Task UpdateAsync(Exam exam)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -66,6 +70,7 @@ public class ExamService
         await db.SaveChangesAsync();
     }
 
+    // Přepne stav termínu mezi aktivním a hotovým
     public async Task ToggleAsync(int id)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -78,6 +83,7 @@ public class ExamService
         await db.SaveChangesAsync();
     }
 
+    // Smaže termín podle Id
     public async Task DeleteAsync(int id)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -90,4 +96,3 @@ public class ExamService
         await db.SaveChangesAsync();
     }
 }
-

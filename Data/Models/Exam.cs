@@ -23,5 +23,6 @@ public class Exam
     public int? SubjectId { get; set; }
     public Subject? Subject { get; set; }
 
+    // Ponecháno kvůli kompatibilitě se starší verzí datového modelu.
     public string? LegacyName { get; set; }
 }

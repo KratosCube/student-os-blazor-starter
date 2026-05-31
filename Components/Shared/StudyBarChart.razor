@@ -53,8 +53,7 @@
                         </div>
 
                         <div class="flex h-[210px] items-end justify-center">
-                            <div class="ui-chart-bar"
-                                 style="height:@($"{finalHeight}%"); max-width:@BarMaxWidth;">
+                            <div class="ui-chart-bar" style="height:@($"{finalHeight}%"); max-width:@BarMaxWidth;">
                                 @foreach (var segment in item.Segments)
                                 {
                                     var segmentHeight = item.TotalValue == 0
@@ -69,9 +68,7 @@
                             </div>
                         </div>
 
-                        <div class="ui-chart-label"
-                             style="font-size:@LabelFontSize;"
-                             title="@item.Label">
+                        <div class="ui-chart-label" style="font-size:@LabelFontSize;" title="@item.Label">
                             @item.Label
                         </div>
                     </div>

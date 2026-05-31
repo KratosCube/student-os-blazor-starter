@@ -13,16 +13,18 @@ public class SubjectService
         _dbFactory = dbFactory;
     }
 
+    // Načte všechny předměty včetně jejich termínů a studijních session
     public async Task<List<Subject>> GetAllAsync()
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
-        return await db.Subjects
-            .Include(x => x.Exams.OrderBy(e => e.Date))
+        return await db
+            .Subjects.Include(x => x.Exams.OrderBy(e => e.Date))
             .Include(x => x.Sessions.OrderByDescending(s => s.CreatedAt))
             .OrderBy(x => x.Name)
             .ToListAsync();
     }
 
+    // Přidá nový předmět do databáze
     public async Task AddAsync(Subject subject)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -30,6 +32,7 @@ public class SubjectService
         await db.SaveChangesAsync();
     }
 
+    // Upraví existující předmět
     public async Task UpdateAsync(Subject subject)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -37,11 +40,13 @@ public class SubjectService
         await db.SaveChangesAsync();
     }
 
+    // Smaže předmět podle jeho Id
     public async Task DeleteAsync(int id)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
         var subject = await db.Subjects.FindAsync(id);
-        if (subject is null) return;
+        if (subject is null)
+            return;
         db.Subjects.Remove(subject);
         await db.SaveChangesAsync();
     }
