@@ -20,6 +20,9 @@ else
             <h2 class="ui-page-title mt-2">Předměty a studijní historie</h2>
         </section>
 
+        @*
+            Vlevo správa předmětů a vpravo ruční záznam studia
+        *@
         <div class="grid items-start gap-6 xl:grid-cols-2">
             <div class="ui-card h-fit p-6">
                 <h3 class="ui-section-title">@(_isEditing ? "Upravit předmět" : "Přidat předmět")</h3>
@@ -40,7 +43,7 @@ else
                         <label class="ui-label">Barva</label>
                         <div class="flex flex-wrap gap-3">
                            @foreach (var color in _colors)
-{
+                            {
     var isSelected = _subjectForm.Color == color;
 
     <label class="ui-color-option @(isSelected ? "ui-color-option-selected" : string.Empty)"
@@ -159,6 +162,9 @@ else
                 <h3 class="ui-section-title">Hierarchický přehled dat</h3>
             </div>
 
+            @*
+                Každý předmět lze rozbalit a zobrazit jeho termíny a poslední studijní session
+            *@
             <div class="space-y-4">
                 @if (_subjects.Count == 0)
                 {
@@ -287,6 +293,7 @@ else
     private string _sessionDatePart = DateTime.Now.ToString("yyyy-MM-dd");
     private string _sessionTimePart = DateTime.Now.ToString("HH:mm");
 
+    // Při načtení stránky se načtou předměty a nastavení editace
     protected override async Task OnParametersSetAsync()
     {
         await ReloadAsync();
@@ -323,6 +330,7 @@ else
         _subjectForm.Color = subject.Color;
     }
 
+    // Uloží nový předmět nebo upraví existující
     private async Task SaveSubjectAsync()
     {
         _subjectColorError = null;
@@ -362,6 +370,7 @@ else
         ResetSubjectForm(keepMessage: true);
     }
 
+    // Uloží ruční studijní session pro vybraný předmět
     private async Task SaveSessionAsync()
     {
         _sessionDateError = null;
@@ -402,6 +411,7 @@ else
         ResetSessionForm(keepMessage: true);
     }
 
+    // Smaže předmět
     private async Task DeleteSubjectAsync(int id)
     {
         await SubjectService.DeleteAsync(id);
@@ -417,6 +427,7 @@ else
         ApplyEditState();
     }
 
+    // Přepne stránku do režimu editace předmětu
     private void StartEdit(int id)
     {
         Navigation.NavigateTo($"/subjects?edit={id}", forceLoad: false);
@@ -434,12 +445,14 @@ else
         _sessionDateError = null;
     }
 
+    // Uloží vybranou časovou část ruční session
     private void OnSessionTimeChanged(ChangeEventArgs e)
     {
         _sessionTimePart = e.Value?.ToString() ?? string.Empty;
         _sessionDateError = null;
     }
 
+    // Složí datum a čas z oddělených inputů do jednoho
     private bool TryBuildSessionDateTime(out DateTime createdAt)
     {
         createdAt = default;

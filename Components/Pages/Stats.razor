@@ -12,30 +12,62 @@
 }
 else
 {
+    @*
+        Stats stránka slouží pro detailnější vyhodnocení studia
+    *@
     <div class="space-y-5">
         <section class="ui-card p-6">
             <p class="ui-eyebrow">Stats</p>
-            <h2 class="ui-page-title mt-2">Statistiky a odměny</h2>
+
+            <h2 class="ui-page-title mt-2">
+                Statistiky a odměny
+            </h2>
         </section>
 
+        @*
+            Vybraný týden se mění pomocí šipek nebo ručního výběru data
+        *@
         <section class="grid gap-4 md:grid-cols-3">
             <div class="ui-card p-5">
-                <p class="ui-metric-label">Vybraný týden</p>
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-calendar-week text-xl text-indigo-500" aria-hidden="true"></i>
+
+                    <p class="ui-metric-label">
+                        Vybraný týden
+                    </p>
+                </div>
+
                 <p class="ui-metric-value mt-3">
                     @FormatMinutes(SelectedWeekMinutes)
                 </p>
             </div>
 
             <div class="ui-card p-5">
-                <p class="ui-metric-label">Celkem odstudováno</p>
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-clock-history text-xl text-indigo-500" aria-hidden="true"></i>
+
+                    <p class="ui-metric-label">
+                        Celkem odstudováno
+                    </p>
+                </div>
+
                 <p class="ui-metric-value mt-3">
                     @FormatMinutes(_vm.LifetimeMinutes)
                 </p>
             </div>
 
             <div class="ui-card p-5">
-                <p class="ui-metric-label">Kredity</p>
-                <p class="ui-metric-value mt-3">@_vm.TotalLifetimeCredits</p>
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-stars text-xl text-indigo-500" aria-hidden="true"></i>
+
+                    <p class="ui-metric-label">
+                        Kredity
+                    </p>
+                </div>
+
+                <p class="ui-metric-value mt-3">
+                    @_vm.TotalLifetimeCredits
+                </p>
             </div>
         </section>
 
@@ -58,45 +90,31 @@ else
 
                 @if (_mode == StatsChartMode.Week)
                 {
+                    @*
+                        Ovládání týdenního grafu
+                        Šipky posouvají týden dopředu/dozadu
+                    *@
                     <div class="flex flex-wrap gap-2">
                         <button type="button"
                                 class="ui-btn-secondary"
                                 title="Předchozí týden"
                                 @onclick="PreviousWeek">
-                            ←
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
                         </button>
 
-                       <div class="relative">
-    <input type="date"
-       value="@WeekPickerValue"
-       max="@TodayPickerValue"
-       @onchange="OnWeekPickerDateChanged"
-       class="ui-week-picker-input"
-       title="@WeekRangeTitle" />
-
-    @if (_showWeekPicker)
-    {
-        <div class="ui-card absolute right-0 z-20 mt-2 w-64 p-4 shadow-lg">
-            <label class="ui-label">Vyber den</label>
-
-            <input type="date"
-                   value="@WeekPickerValue"
-                   @onchange="OnWeekPickerDateChanged"
-                   class="ui-input" />
-
-            <p class="ui-text-helper mt-2">
-                Zobrazí se týden, do kterého vybraný den patří.
-            </p>
-        </div>
-    }
-</div>
+                        <input type="date"
+                               value="@WeekPickerValue"
+                               max="@TodayPickerValue"
+                               @onchange="OnWeekPickerDateChanged"
+                               class="ui-week-picker-input"
+                               title="@WeekRangeTitle" />
 
                         <button type="button"
                                 class="@NextWeekButtonClass"
                                 title="Další týden"
                                 disabled="@IsCurrentWeekSelected"
                                 @onclick="NextWeek">
-                            →
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
                         </button>
                     </div>
                 }
@@ -112,109 +130,195 @@ else
 
     private StatsChartMode _mode = StatsChartMode.Week;
     private DateTime _weekStart = GetStartOfWeek(DateTime.Today);
-    private bool _showWeekPicker;
     private readonly System.Globalization.CultureInfo _cs = new("cs-CZ");
 
+    // Při načtení stránky se načtou data z DashboardService
     protected override async Task OnInitializedAsync()
     {
         _vm = await DashboardService.GetDashboardAsync();
         _weekStart = GetStartOfWeek(DateTime.Today);
     }
 
-    private List<ChartItemVm> ChartItems => _vm is null
-        ? new List<ChartItemVm>()
-        : _mode switch
+    // Vybere aktuální data pro graf podle zapnutého režimu
+    private List<ChartItemVm> ChartItems
+    {
+        get
         {
-            StatsChartMode.Subjects => _vm.SubjectSeries,
-            _ => SelectedWeekSeries
-        };
+            if (_vm is null)
+            {
+                return new List<ChartItemVm>();
+            }
 
-    private List<ChartItemVm> SelectedWeekSeries => _vm is null
-        ? new List<ChartItemVm>()
-        : BuildWeekSeries(_vm.Subjects, _weekStart);
+            if (_mode == StatsChartMode.Subjects)
+            {
+                return _vm.SubjectSeries;
+            }
 
-    private int SelectedWeekMinutes => SelectedWeekSeries.Sum(x => x.TotalValue);
+            return SelectedWeekSeries;
+        }
+    }
 
-    private string ChartTitle => _mode switch
+    // Vytvoří graph series pro aktuálně vybraný týden
+    private List<ChartItemVm> SelectedWeekSeries
     {
-        StatsChartMode.Subjects => "Studium podle předmětů",
-        _ => "Studium po týdnech"
-    };
+        get
+        {
+            if (_vm is null)
+            {
+                return new List<ChartItemVm>();
+            }
 
-    private string ChartDescription => _mode switch
+            return BuildWeekSeries(_vm.Subjects, _weekStart);
+        }
+    }
+
+    // Součet minut ve vybraném týdnu
+    private int SelectedWeekMinutes
     {
-        StatsChartMode.Subjects => "Souhrn celkového času podle jednotlivých předmětů.",
-        _ => $"Týden od {_weekStart.ToString("d. M. yyyy", _cs)} do {_weekStart.AddDays(6).ToString("d. M. yyyy", _cs)}."
-    };
+        get
+        {
+            return SelectedWeekSeries.Sum(chartItem => chartItem.TotalValue);
+        }
+    }
 
-    private string TodayPickerValue => DateTime.Today.ToString("yyyy-MM-dd");
-   
-    private string WeekRangeTitle =>
-    $"{_weekStart.ToString("d. M. yyyy", _cs)} – {_weekStart.AddDays(6).ToString("d. M. yyyy", _cs)}";
-    private string WeekPickerValue => _weekStart.ToString("yyyy-MM-dd");
-    private bool IsCurrentWeekSelected => _weekStart.Date >= GetStartOfWeek(DateTime.Today);
+    private string ChartTitle
+    {
+        get
+        {
+            if (_mode == StatsChartMode.Subjects)
+            {
+                return "Studium podle předmětů";
+            }
 
-    private string NextWeekButtonClass => IsCurrentWeekSelected
-        ? "ui-btn-secondary cursor-not-allowed opacity-50"
-        : "ui-btn-secondary";
+            return "Studium po týdnech";
+        }
+    }
 
+    private string ChartDescription
+    {
+        get
+        {
+            if (_mode == StatsChartMode.Subjects)
+            {
+                return "Souhrn celkového času podle jednotlivých předmětů.";
+            }
+
+            return $"Týden od {_weekStart.ToString("d. M. yyyy", _cs)} do {_weekStart.AddDays(6).ToString("d. M. yyyy", _cs)}.";
+        }
+    }
+
+    private string TodayPickerValue
+    {
+        get
+        {
+            return DateTime.Today.ToString("yyyy-MM-dd");
+        }
+    }
+
+    private string WeekRangeTitle
+    {
+        get
+        {
+            return $"{_weekStart.ToString("d. M. yyyy", _cs)} – {_weekStart.AddDays(6).ToString("d. M. yyyy", _cs)}";
+        }
+    }
+
+    // Hodnota date pickeru je pondělí vybraného týdne.
+    private string WeekPickerValue
+    {
+        get
+        {
+            return _weekStart.ToString("yyyy-MM-dd");
+        }
+    }
+
+    // Aktuální týden je horní limit
+    private bool IsCurrentWeekSelected
+    {
+        get
+        {
+            return _weekStart.Date >= GetStartOfWeek(DateTime.Today);
+        }
+    }
+
+    private string NextWeekButtonClass
+    {
+        get
+        {
+            if (IsCurrentWeekSelected)
+            {
+                return "ui-btn-secondary cursor-not-allowed opacity-50";
+            }
+
+            return "ui-btn-secondary";
+        }
+    }
+
+    // Přepíná grafy 
     private void SetMode(StatsChartMode mode)
     {
         _mode = mode;
-        _showWeekPicker = false;
     }
 
+    // Posune týden zpět
     private void PreviousWeek()
     {
         _weekStart = _weekStart.AddDays(-7);
-        _showWeekPicker = false;
     }
 
+    // Posune týdenní graf o jeden týden dopředu
     private void NextWeek()
     {
         if (IsCurrentWeekSelected)
+        {
             return;
+        }
 
         _weekStart = _weekStart.AddDays(7);
-        _showWeekPicker = false;
     }
-    private void ToggleWeekPicker()
-{
-    _showWeekPicker = !_showWeekPicker;
-}
 
-private void OnWeekPickerDateChanged(ChangeEventArgs e)
-{
-    var raw = e.Value?.ToString();
+    private void OnWeekPickerDateChanged(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString();
 
-    if (!DateTime.TryParse(raw, out var selectedDate))
-        return;
+        if (!DateTime.TryParse(raw, out var selectedDate))
+        {
+            return;
+        }
 
-    var selectedWeek = GetStartOfWeek(selectedDate);
-    var currentWeek = GetStartOfWeek(DateTime.Today);
+        var selectedWeek = GetStartOfWeek(selectedDate);
+        var currentWeek = GetStartOfWeek(DateTime.Today);
 
-    _weekStart = selectedWeek > currentWeek
-        ? currentWeek
-        : selectedWeek;
+        if (selectedWeek > currentWeek)
+        {
+            _weekStart = currentWeek;
+            return;
+        }
 
-    _showWeekPicker = false;
-}
+        _weekStart = selectedWeek;
+    }
+
+    // Aktivní přepínač grafu má primární styl
     private string GetModeButtonClass(StatsChartMode mode)
     {
-        return _mode == mode
-            ? "ui-btn-primary"
-            : "ui-btn-secondary";
+        if (_mode == mode)
+        {
+            return "ui-btn-primary";
+        }
+
+        return "ui-btn-secondary";
     }
 
+    // Vytvoří graph series pro sedm dní od zadaného dne (od pondělí týdne ve kterém je vybraný den)
     private static List<ChartItemVm> BuildWeekSeries(List<Subject> subjects, DateTime weekStart)
     {
         return Enumerable
             .Range(0, 7)
-            .Select(index =>
+            .Select(dayIndex =>
             {
-                var day = weekStart.Date.AddDays(index);
+                var day = weekStart.Date.AddDays(dayIndex);
 
-                var segments = subjects
+                var sessionsForDay = subjects
                     .SelectMany(subject =>
                         subject.Sessions
                             .Where(session => session.CreatedAt.Date == day)
@@ -224,11 +328,13 @@ private void OnWeekPickerDateChanged(ChangeEventArgs e)
                                 subject.Color,
                                 session.Duration
                             })
-                    )
-                    .GroupBy(x => new { x.Name, x.Color })
+                    );
+
+                var segments = sessionsForDay
+                    .GroupBy(session => new { session.Name, session.Color })
                     .Select(group => new ChartSegmentVm(
                         group.Key.Name,
-                        group.Sum(x => x.Duration),
+                        group.Sum(session => session.Duration),
                         group.Key.Color
                     ))
                     .ToList();
@@ -238,9 +344,11 @@ private void OnWeekPickerDateChanged(ChangeEventArgs e)
             .ToList();
     }
 
+    // Vrátí pondělí týdne, do kterého patří zadané datum
     private static DateTime GetStartOfWeek(DateTime date)
     {
         var diff = ((int)date.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+
         return date.Date.AddDays(-diff);
     }
 
@@ -248,6 +356,7 @@ private void OnWeekPickerDateChanged(ChangeEventArgs e)
     {
         var hours = totalMinutes / 60;
         var minutes = totalMinutes % 60;
+
         return $"{hours}h {minutes}m";
     }
 

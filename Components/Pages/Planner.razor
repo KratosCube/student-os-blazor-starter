@@ -13,6 +13,10 @@
         <h2 class="ui-page-title mt-2">Správa zkoušek a termínů</h2>
     </section>
 
+    @*
+        Levý sloupec obsahuje formulář pro vytvoření nebo úpravu termínu
+        Pravý sloupec zobrazuje všechny uložené termíny.
+    *@
     <div class="grid items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
         <div class="ui-card h-fit p-6">
             <div class="mb-6">
@@ -109,6 +113,9 @@
                 }
                 else
                 {
+                    @*
+                        Každý termín je karta s předmětem, datem, stavem a akcemi.
+                    *@
                     <div class="space-y-3">
                         @foreach (var exam in _exams)
                         {
@@ -191,18 +198,21 @@
 
     private string DateLocalValue => _form.Date.ToString("yyyy-MM-ddTHH:mm");
 
+    // Při změně query parametru nebo načtení stránky se znovu načtou data
     protected override async Task OnParametersSetAsync()
     {
         await ReloadAsync();
         ApplyEditState();
     }
 
+    // Načte předměty pro select a termíny pro přehled
     private async Task ReloadAsync()
     {
         _subjects = await SubjectService.GetAllAsync();
         _exams = await ExamService.GetAllAsync();
     }
 
+    // Nastaví formulář podle query parametru edit
     private void ApplyEditState()
     {
         _message = null;
@@ -231,6 +241,7 @@
         _form.IsDone = entity.IsDone;
     }
 
+    // Uloží nový termín nebo upraví existující
     private async Task SaveAsync()
     {
         _dateError = null;
@@ -295,6 +306,7 @@
         ResetForm(keepMessage: true);
     }
 
+    // Přepne termín mezi aktivním a hotovým stavem
     private async Task ToggleAsync(int id)
     {
         await ExamService.ToggleAsync(id);
@@ -302,6 +314,7 @@
         ApplyEditState();
     }
 
+    // Smaže termín
     private async Task DeleteAsync(int id)
     {
         await ExamService.DeleteAsync(id);
@@ -317,6 +330,7 @@
         ApplyEditState();
     }
 
+    // Přepne stránku do režimu editace pomocí query parametru
     private void StartEdit(int id)
     {
         Navigation.NavigateTo($"/planner?edit={id}", forceLoad: false);
@@ -350,6 +364,7 @@
         }
     }
 
+    // Vrátí formulář do výchozího stavu
     private void ResetForm(bool keepMessage = false)
     {
         _isEditing = false;
