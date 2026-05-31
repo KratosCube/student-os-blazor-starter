@@ -38,10 +38,6 @@ Pro spuštění aplikace je potřeba mít nainstalované:
 V kořenové složce projektu spusťte následující příkazy:
 
 ```bash
-dotnet restore
-```
-
-```bash
 npm install
 ```
 
