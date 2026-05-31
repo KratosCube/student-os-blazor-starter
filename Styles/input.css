@@ -278,6 +278,10 @@ body {
     @apply bg-indigo-600 text-white shadow-sm;
   }
 
+  .nav-item-active:hover {
+   @apply bg-indigo-700 text-white dark:bg-indigo-500 dark:text-white;
+  }
+
   .ui-modal-backdrop {
     @apply fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4;
   }
@@ -335,6 +339,60 @@ body {
   .ui-chart-label {
     @apply mt-3 truncate text-center font-medium text-slate-700 dark:text-slate-200;
   }
+
+  .ui-settings-btn {
+  @apply inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-500 dark:hover:bg-slate-800 dark:hover:text-indigo-300;
+  }
+
+.ui-week-picker-input {
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  @apply h-11 rounded-xl bg-transparent px-4 text-sm font-semibold outline-none transition-colors;
+}
+
+.ui-week-picker-input:hover {
+  background-color: var(--surface-2);
+}
+
+.ui-week-picker-input:focus {
+  border-color: var(--primary);
+}
+
+.ui-week-picker-input::-webkit-calendar-picker-indicator {
+  @apply cursor-pointer;
+}
+
+.ui-color-option {
+  @apply cursor-pointer rounded-full p-1 transition-all;
+}
+
+.ui-color-option:hover {
+  @apply bg-slate-100 dark:bg-slate-800;
+}
+
+.ui-color-option-selected {
+  @apply bg-indigo-100 ring-2 ring-indigo-500 dark:bg-indigo-900/30;
+}
+
+.ui-color-dot {
+  @apply flex h-10 w-10 items-center justify-center rounded-full border-4 border-white shadow ring-1 ring-slate-300 dark:ring-slate-700;
+}
+
+.ui-color-check {
+  @apply flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-900 shadow-sm;
+}
+
+.ui-progress-card {
+  @apply flex min-h-[162px] w-full flex-col justify-between rounded-xl border p-4 transition-colors;
+}
+
+.ui-progress-card-warning {
+  @apply border-amber-200/70 bg-amber-50/70 hover:bg-amber-100/70 dark:border-amber-900/40 dark:bg-amber-900/10 dark:hover:bg-amber-900/20;
+}
+
+.ui-progress-card-primary {
+  @apply border-indigo-200/70 bg-indigo-50/70 hover:bg-indigo-100/70 dark:border-indigo-900/40 dark:bg-indigo-900/10 dark:hover:bg-indigo-900/20;
+}
 }
 
 .notes-lines {

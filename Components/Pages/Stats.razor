@@ -66,9 +66,30 @@ else
                             ←
                         </button>
 
-                        <span class="ui-btn-secondary cursor-default">
-                            @_weekStart.ToString("d. M.", _cs) – @_weekStart.AddDays(6).ToString("d. M. yyyy", _cs)
-                        </span>
+                       <div class="relative">
+    <input type="date"
+       value="@WeekPickerValue"
+       max="@TodayPickerValue"
+       @onchange="OnWeekPickerDateChanged"
+       class="ui-week-picker-input"
+       title="@WeekRangeTitle" />
+
+    @if (_showWeekPicker)
+    {
+        <div class="ui-card absolute right-0 z-20 mt-2 w-64 p-4 shadow-lg">
+            <label class="ui-label">Vyber den</label>
+
+            <input type="date"
+                   value="@WeekPickerValue"
+                   @onchange="OnWeekPickerDateChanged"
+                   class="ui-input" />
+
+            <p class="ui-text-helper mt-2">
+                Zobrazí se týden, do kterého vybraný den patří.
+            </p>
+        </div>
+    }
+</div>
 
                         <button type="button"
                                 class="@NextWeekButtonClass"
@@ -91,7 +112,7 @@ else
 
     private StatsChartMode _mode = StatsChartMode.Week;
     private DateTime _weekStart = GetStartOfWeek(DateTime.Today);
-
+    private bool _showWeekPicker;
     private readonly System.Globalization.CultureInfo _cs = new("cs-CZ");
 
     protected override async Task OnInitializedAsync()
@@ -126,6 +147,11 @@ else
         _ => $"Týden od {_weekStart.ToString("d. M. yyyy", _cs)} do {_weekStart.AddDays(6).ToString("d. M. yyyy", _cs)}."
     };
 
+    private string TodayPickerValue => DateTime.Today.ToString("yyyy-MM-dd");
+   
+    private string WeekRangeTitle =>
+    $"{_weekStart.ToString("d. M. yyyy", _cs)} – {_weekStart.AddDays(6).ToString("d. M. yyyy", _cs)}";
+    private string WeekPickerValue => _weekStart.ToString("yyyy-MM-dd");
     private bool IsCurrentWeekSelected => _weekStart.Date >= GetStartOfWeek(DateTime.Today);
 
     private string NextWeekButtonClass => IsCurrentWeekSelected
@@ -135,11 +161,13 @@ else
     private void SetMode(StatsChartMode mode)
     {
         _mode = mode;
+        _showWeekPicker = false;
     }
 
     private void PreviousWeek()
     {
         _weekStart = _weekStart.AddDays(-7);
+        _showWeekPicker = false;
     }
 
     private void NextWeek()
@@ -148,8 +176,29 @@ else
             return;
 
         _weekStart = _weekStart.AddDays(7);
+        _showWeekPicker = false;
     }
+    private void ToggleWeekPicker()
+{
+    _showWeekPicker = !_showWeekPicker;
+}
 
+private void OnWeekPickerDateChanged(ChangeEventArgs e)
+{
+    var raw = e.Value?.ToString();
+
+    if (!DateTime.TryParse(raw, out var selectedDate))
+        return;
+
+    var selectedWeek = GetStartOfWeek(selectedDate);
+    var currentWeek = GetStartOfWeek(DateTime.Today);
+
+    _weekStart = selectedWeek > currentWeek
+        ? currentWeek
+        : selectedWeek;
+
+    _showWeekPicker = false;
+}
     private string GetModeButtonClass(StatsChartMode mode)
     {
         return _mode == mode

@@ -3,87 +3,113 @@
 
 @if (_isMounted)
 {
-    <div class="w-full overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-colors dark:border-slate-700 dark:bg-slate-800">
-        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-5 text-white">
-            <div class="mb-1 flex items-start justify-between">
-                <h3 class="flex items-center gap-2 text-sm font-bold md:text-base">
-                    Obchod odměn
-                </h3>
-                <div class="rounded bg-white/20 px-2 py-0.5 text-[10px] font-medium md:text-xs">
-                    Celkem: @TotalLifetimeCredits
-                </div>
+    <div id="reward-shop" class="ui-card scroll-mt-5 p-6">
+        <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <p class="ui-eyebrow">Reward shop</p>
+                <h3 class="ui-section-title mt-2">Odměny za studium</h3>
+                
             </div>
 
-            <div class="flex items-baseline gap-2">
-                <span class="text-3xl font-bold tracking-tight md:text-4xl">@CurrentBalance</span>
-                <span class="text-[10px] font-medium uppercase text-indigo-200 md:text-xs">Kreditů</span>
+            <span class="ui-badge ui-badge-primary">
+                @CurrentBalance kreditů
+            </span>
+        </div>
+
+        @if (_rewards.Count == 0)
+        {
+            <div class="ui-empty-state">
+                Zatím nejsou vytvořené žádné odměny.
+            </div>
+        }
+        else
+        {
+            <div class="grid gap-3 lg:grid-cols-2">
+                @foreach (var reward in _rewards)
+                {
+                    var canBuy = CurrentBalance >= reward.Cost;
+
+                    <div class="ui-list-item">
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="min-w-0">
+            <p class="truncate font-semibold text-slate-800 dark:text-slate-100">
+                @reward.Name
+            </p>
+
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+                <span class="ui-text-helper">
+                    Cena:
+                </span>
+
+                <span class="ui-badge @(canBuy ? "ui-badge-primary" : "ui-badge-neutral")">
+                    @FormatCredits(reward.Cost)
+                </span>
             </div>
         </div>
 
-        <div class="max-h-[35vh] min-h-[200px] flex-1 overflow-y-auto p-3">
-            <div class="space-y-2">
-                @foreach (var reward in _rewards)
-                {
-                    <div class="group flex items-center justify-between rounded-xl border border-transparent p-2.5 transition-all hover:border-slate-100 hover:bg-slate-50 dark:hover:border-slate-700 dark:hover:bg-slate-700/50">
-                        <div class="flex items-center gap-3">
-                            <div class="@GetCostBadgeClass(reward.Cost)">
-                                @reward.Cost
-                            </div>
-                            <span class="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
-                                @reward.Name
-                            </span>
-                        </div>
+        <div class="flex flex-wrap gap-2 md:shrink-0">
+            <button type="button"
+                    class="@(canBuy ? "ui-btn-small ui-btn-primary" : "ui-btn-small ui-btn-secondary cursor-not-allowed opacity-50")"
+                    disabled="@(!canBuy)"
+                    @onclick="() => BuyRewardAsync(reward)">
+                Koupit
+            </button>
 
-                        <div class="flex items-center gap-1">
-                            <button @onclick="() => BuyRewardAsync(reward)"
-                                    disabled="@(CurrentBalance < reward.Cost)"
-                                    class="@GetBuyButtonClass(reward.Cost)">
-                                Koupit
-                            </button>
-
-                            <button @onclick="() => DeleteRewardAsync(reward.Id)"
-                                    class="p-1 text-slate-300 opacity-0 transition-opacity hover:text-rose-500 group-hover:opacity-100 dark:text-slate-600 dark:hover:text-rose-400">
-                                Smazat
-                            </button>
-                        </div>
-                    </div>
-                }
+            <button type="button"
+                    class="ui-btn-small ui-btn-secondary"
+                    @onclick="() => DeleteRewardAsync(reward.Id)">
+                Smazat
+            </button>
+        </div>
+    </div>
+</div>                }
             </div>
+        }
 
-            @if (_isAdding)
-            {
-                <div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
-                    <input autofocus
-                           placeholder="Název..."
-                           @bind="_newRewardName"
-                           class="mb-2 w-full rounded border border-slate-200 bg-white p-2 text-xs text-slate-800 outline-none focus:border-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
+        @if (_isAdding)
+        {
+            <div class="ui-card-soft mt-4 p-4">
+                <div class="grid gap-3 md:grid-cols-[1fr_120px]">
+                    <div>
+                        <label class="ui-label">Název odměny</label>
+                        <input autofocus
+                               placeholder="Např. káva, pauza, epizoda seriálu..."
+                               @bind="_newRewardName"
+                               class="ui-input" />
+                    </div>
 
-                    <div class="flex gap-2">
+                    <div>
+                        <label class="ui-label">Cena</label>
                         <input type="number"
                                min="1"
                                @bind="_newRewardCost"
-                               class="w-16 rounded border border-slate-200 bg-white p-2 text-xs text-slate-800 outline-none focus:border-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" />
-
-                        <button @onclick="AddRewardAsync"
-                                class="flex-1 rounded bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700">
-                            OK
-                        </button>
-
-                        <button @onclick="CancelAddReward"
-                                class="rounded bg-slate-200 px-3 text-xs font-bold text-slate-600 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600">
-                            X
-                        </button>
+                               class="ui-input" />
                     </div>
                 </div>
-            }
-            else
-            {
-                <button @onclick="() => _isAdding = true"
-                        class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 py-2 text-xs font-bold text-slate-400 transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-500 dark:hover:border-indigo-500 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400">
-                    Vytvořit
-                </button>
-            }
-        </div>
+
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <button type="button"
+                            class="ui-btn-primary"
+                            @onclick="AddRewardAsync">
+                        Přidat
+                    </button>
+
+                    <button type="button"
+                            class="ui-btn-secondary"
+                            @onclick="CancelAddReward">
+                        Zrušit
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <button type="button"
+                    class="ui-btn-secondary mt-4 w-full"
+                    @onclick="() => _isAdding = true">
+                Přidat vlastní odměnu
+            </button>
+        }
     </div>
 }
 
@@ -101,15 +127,15 @@
         .Select(x => new RewardItem { Id = x.Id, Name = x.Name, Cost = x.Cost })
         .ToList();
 
-    private int CurrentBalance => TotalLifetimeCredits - _spentCredits;
+    private int CurrentBalance => Math.Max(0, TotalLifetimeCredits - _spentCredits);
 
     private static readonly List<RewardItem> DefaultRewards =
     [
-        new() { Id = "1", Name = "Epizoda seriálu 📺", Cost = 1 },
-        new() { Id = "2", Name = "Sladkost / Snack 🍫", Cost = 1 },
-        new() { Id = "3", Name = "Hraní her (30 min) 🎮", Cost = 2 },
-        new() { Id = "4", Name = "Pivo / Drink 🍺", Cost = 3 },
-        new() { Id = "5", Name = "Kino / Akce 🎬", Cost = 6 }
+        new() { Id = "1", Name = "Epizoda seriálu", Cost = 1 },
+        new() { Id = "2", Name = "Káva nebo snack", Cost = 1 },
+        new() { Id = "3", Name = "Hraní her 30 minut", Cost = 2 },
+        new() { Id = "4", Name = "Delší pauza", Cost = 3 },
+        new() { Id = "5", Name = "Kino nebo akce", Cost = 6 }
     ];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -134,13 +160,13 @@
     {
         if (CurrentBalance < reward.Cost)
         {
-            await JS.InvokeVoidAsync("alert", "Na tohle nemáš dost kreditů! Musíš se víc učit. 📚");
+            await JS.InvokeVoidAsync("alert", "Na tuto odměnu nemáš dost kreditů.");
             return;
         }
 
         var confirm = await JS.InvokeAsync<bool>(
             "confirm",
-            $"Opravdu si chceš koupit \"{reward.Name}\" za {reward.Cost} kredity?"
+            $"Opravdu chceš koupit odměnu \"{reward.Name}\" za {reward.Cost} kreditů?"
         );
 
         if (!confirm)
@@ -182,18 +208,14 @@
         await Storage.SetObjectAsync("userCustomRewards", _rewards);
     }
 
-    private string GetCostBadgeClass(int cost)
+    private static string FormatCredits(int credits)
     {
-        return CurrentBalance >= cost
-            ? "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
-            : "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-400 dark:bg-slate-700 dark:text-slate-500";
-    }
-
-    private string GetBuyButtonClass(int cost)
-    {
-        return CurrentBalance >= cost
-            ? "rounded-lg bg-indigo-600 px-2 py-1.5 text-[10px] font-bold text-white transition-colors hover:bg-indigo-700"
-            : "cursor-not-allowed rounded-lg bg-slate-100 px-2 py-1.5 text-[10px] font-bold text-slate-400 dark:bg-slate-700 dark:text-slate-500";
+        return credits switch
+        {
+            1 => "1 kredit",
+            2 or 3 or 4 => $"{credits} kredity",
+            _ => $"{credits} kreditů"
+        };
     }
 
     private sealed class RewardItem

@@ -1,4 +1,5 @@
 @inject BrowserStorageService Storage
+@inject NavigationManager Navigation
 
 @if (_loaded)
 {
@@ -13,13 +14,11 @@
             </div>
 
             <button @onclick="() => _showSettings = !_showSettings"
-                    class="text-slate-400 transition-colors hover:text-indigo-400"
-                    title="Nastavení cílů">
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 1-2 0 1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 1 0-2 1.65 1.65 0 0 0 .6-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 1 2 0 1.65 1.65 0 0 0 1 .6 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.24.37.4.79.4 1s-.16.63-.4 1Z"></path>
-                </svg>
-            </button>
+        class="ui-settings-btn"
+        title="Nastavení cílů"
+        aria-label="Nastavení cílů">
+    <span aria-hidden="true" class="text-base leading-none">⚙</span>
+</button>
         </div>
 
         @if (_showSettings)
@@ -73,22 +72,24 @@
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <div class="flex min-h-[162px] flex-col justify-between rounded-xl border border-amber-200/70 bg-amber-50/70 p-4 dark:border-amber-900/40 dark:bg-amber-900/10">
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">
-                            Kredity
-                        </p>
-                        <p class="mt-2 text-3xl font-bold tracking-tight text-amber-800 dark:text-amber-200">
-                            @Credits
-                        </p>
-                    </div>
+               <button type="button"
+        class="ui-progress-card ui-progress-card-warning text-left"
+        title="Přejít na reward shop"
+        @onclick="GoToRewardShop">
+    <div>
+        <p class="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">
+            Kredity
+        </p>
 
-                    <p class="text-sm leading-5 text-amber-700/80 dark:text-amber-300/80">
-                        Dnešní odměny
-                    </p>
-                </div>
+        <p class="mt-2 text-3xl font-bold tracking-tight text-amber-800 dark:text-amber-200">
+            @Credits
+        </p>
+    </div>
 
-                <div class="flex min-h-[162px] flex-col justify-between rounded-xl border border-indigo-200/70 bg-indigo-50/70 p-4 dark:border-indigo-900/40 dark:bg-indigo-900/10">
+    <p class="text-sm leading-5 text-amber-700/80 dark:text-amber-300/80">
+        Otevřít odměny
+    </p>
+</button>                <div class="ui-progress-card ui-progress-card-primary">
                     <div>
                         <p class="text-xs font-medium uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
                             Další za
@@ -145,6 +146,11 @@
         await Storage.SetStringAsync("userGoalHours", _goalHours.ToString(System.Globalization.CultureInfo.InvariantCulture));
         await Storage.SetStringAsync("userRewardRatio", _minutesPerCredit.ToString());
         _showSettings = false;
+    }
+
+    private void GoToRewardShop()
+    {
+        Navigation.NavigateTo("/stats#reward-shop");
     }
 
     private int GoalMinutes => (int)(_goalHours * 60);

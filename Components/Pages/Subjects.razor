@@ -39,19 +39,27 @@ else
                     <div>
                         <label class="ui-label">Barva</label>
                         <div class="flex flex-wrap gap-3">
-                            @foreach (var color in _colors)
-                            {
-                                <label class="cursor-pointer">
-                                    <input type="radio"
-                                           class="sr-only"
-                                           name="subject-color"
-                                           checked="@(_subjectForm.Color == color)"
-                                           @onchange="() => _subjectForm.Color = color" />
-                                    <span class="block h-10 w-10 rounded-full border-4 border-white shadow ring-1 ring-slate-300 dark:ring-slate-700"
-                                          style="background-color:@color"></span>
-                                </label>
-                            }
-                        </div>
+                           @foreach (var color in _colors)
+{
+    var isSelected = _subjectForm.Color == color;
+
+    <label class="ui-color-option @(isSelected ? "ui-color-option-selected" : string.Empty)"
+           title="@($"Vybrat barvu {color}")">
+        <input type="radio"
+               class="sr-only"
+               name="subject-color"
+               checked="@isSelected"
+               @onchange="() => _subjectForm.Color = color" />
+
+        <span class="ui-color-dot"
+              style="background-color:@color">
+            @if (isSelected)
+            {
+                <span class="ui-color-check">✓</span>
+            }
+        </span>
+    </label>
+}                        </div>
 
                         @if (!string.IsNullOrWhiteSpace(_subjectColorError))
                         {
@@ -160,7 +168,7 @@ else
                 {
                     @foreach (var subject in _subjects)
                     {
-                        <details class="rounded-2xl border border-slate-200 p-4 dark:border-slate-800" open>
+                        <details class="rounded-2xl border border-slate-200 p-4 dark:border-slate-800" >
                             <summary class="cursor-pointer list-none">
                                 <div class="flex flex-wrap items-center justify-between gap-4">
                                     <div class="flex items-center gap-3">
@@ -233,7 +241,7 @@ else
                                         }
                                     </div>
                                 </div>
-                            </div>
+                            </div>studijních 
                         </details>
                     }
                 }
