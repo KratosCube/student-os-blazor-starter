@@ -4,10 +4,7 @@
 <div class="ui-card group relative flex min-h-[190px] h-fit flex-col p-5 transition-colors">
     <div class="mb-1 flex items-center justify-between">
         <h3 class="ui-card-title flex items-center gap-2">
-            <svg class="h-4 w-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"></path>
-            </svg>
+            <i class="bi bi-pencil-square text-indigo-400" aria-hidden="true"></i>
             Rychlé poznámky
         </h3>
 
@@ -15,7 +12,10 @@
             Automaticky uloženo
         </span>
     </div>
-
+    @*
+        Textarea používá @oninput místo @bind, aby se poznámka ukládala průběžně při psaní
+        Po změně se dopočítá výška textarea přes JavaScript helper
+    *@
     <textarea @ref="_textareaRef"
               value="@Note"
               @oninput="OnInput"
@@ -34,11 +34,7 @@
                    rel="noopener noreferrer"
                    class="flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:underline dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300"
                    title="@link">
-                    <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M15 3h6v6"></path>
-                        <path d="M10 14 21 3"></path>
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                    </svg>
+                    <i class="bi bi-box-arrow-up-right text-[0.7rem]" aria-hidden="true"></i>
                     @GetHostname(link)
                 </a>
             }
@@ -53,10 +49,12 @@
     private bool _shouldAutoGrow;
     private ElementReference _textareaRef;
 
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            // Po prvním vykreslení se načte uložená poznámka z localStorage
             var saved = await Storage.GetStringAsync("userQuickNotes");
 
             if (!string.IsNullOrWhiteSpace(saved))
@@ -78,6 +76,7 @@
         }
     }
 
+    // Reaguje na každé psaní do textarea
     private async Task OnInput(ChangeEventArgs e)
     {
         Note = e.Value?.ToString() ?? string.Empty;
@@ -91,6 +90,7 @@
         _shouldAutoGrow = true;
     }
 
+    // Najde v textu všechny URL adresy začínající http:// nebo https://
     private void ExtractLinks(string text)
     {
         var matches = System.Text.RegularExpressions.Regex.Matches(
@@ -100,6 +100,7 @@
 
         Links = matches
             .Select(x => x.Value)
+            // Odstranuje duplicity
             .Distinct()
             .ToList();
     }

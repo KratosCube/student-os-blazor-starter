@@ -3,6 +3,9 @@
 
 @if (_isMounted)
 {
+    @*
+        RewardShop zobrazuje odměny, které si student může koupit za kredity
+    *@
     <div id="reward-shop"
          class="ui-card scroll-mt-5 p-6">
         <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
@@ -10,14 +13,14 @@
                 <p class="ui-eyebrow">
                     Reward shop
                 </p>
+
                 <h3 class="ui-section-title mt-2">
                     Odměny za studium
                 </h3>
-                
             </div>
 
             <span class="ui-badge ui-badge-primary">
-                @CurrentBalance kreditů
+                @FormatCredits(CurrentBalance)
             </span>
         </div>
 
@@ -29,60 +32,64 @@
         }
         else
         {
+          @*
+                Odměny se na menší šířce rozdělí do dvou sloupců.
+          *@
             <div class="grid gap-3 lg:grid-cols-2">
                 @foreach (var reward in _rewards)
                 {
                     var canBuy = CurrentBalance >= reward.Cost;
 
                     <div class="ui-list-item">
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div class="min-w-0">
-            <p class="truncate font-semibold text-slate-800 dark:text-slate-100">
-                @reward.Name
-            </p>
+                        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <div class="min-w-0">
+                                <p class="truncate font-semibold text-slate-800 dark:text-slate-100">
+                                    @reward.Name
+                                </p>
 
-            <div class="mt-2 flex flex-wrap items-center gap-2">
-                <span class="ui-text-helper">
-                    Cena:
-                </span>
+                                <div class="mt-2 flex flex-wrap items-center gap-2">
+                                    <span class="ui-text-helper">
+                                        Cena:
+                                    </span>
 
-                <span class="ui-badge @(canBuy ? "ui-badge-primary" : "ui-badge-neutral")">
-                    @FormatCredits(reward.Cost)
-                </span>
-            </div>
-        </div>
+                                    <span class="ui-badge @(canBuy ? "ui-badge-primary" : "ui-badge-neutral")">
+                                        @FormatCredits(reward.Cost)
+                                    </span>
+                                </div>
+                            </div>
 
-        <div class="flex flex-wrap gap-2 md:shrink-0">
-            <button class="@(canBuy ? "ui-btn-small
-                    @onclick="() => BuyRewardAsync(reward)"
-                    type="button"
-                    disabled="@(!canBuy)"
-                    ui-btn-primary" : "ui-btn-small
-                    ui-btn-secondary
-                    cursor-not-allowed
-                    opacity-50")">
-                Koupit
-            </button>
+                            <div class="flex flex-wrap gap-2 md:shrink-0">
+                                <button type="button"
+                                        class="@GetBuyButtonClass(canBuy)"
+                                        disabled="@(!canBuy)"
+                                        @onclick="() => BuyRewardAsync(reward)">
+                                    Koupit
+                                </button>
 
-            <button class="ui-btn-small ui-btn-secondary"
-                    @onclick="() => DeleteRewardAsync(reward.Id)"
-                    type="button">
-                Smazat
-            </button>
-        </div>
-    </div>
-</div>                }
+                                <button type="button"
+                                        class="ui-btn-small ui-btn-secondary"
+                                        @onclick="() => DeleteRewardAsync(reward.Id)">
+                                    Smazat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         }
 
         @if (_isAdding)
         {
+            @*
+                Formulář pro vytvoření vlastní odměny
+            *@
             <div class="ui-card-soft mt-4 p-4">
                 <div class="grid gap-3 md:grid-cols-[1fr_120px]">
                     <div>
                         <label class="ui-label">
                             Název odměny
                         </label>
+
                         <input class="ui-input"
                                @bind="_newRewardName"
                                placeholder="Např. káva, pauza, epizoda seriálu..."
@@ -93,6 +100,7 @@
                         <label class="ui-label">
                             Cena
                         </label>
+
                         <input class="ui-input"
                                @bind="_newRewardCost"
                                type="number"
@@ -101,15 +109,15 @@
                 </div>
 
                 <div class="mt-4 flex flex-wrap gap-3">
-                    <button class="ui-btn-primary"
-                            @onclick="AddRewardAsync"
-                            type="button">
+                    <button type="button"
+                            class="ui-btn-primary"
+                            @onclick="AddRewardAsync">
                         Přidat
                     </button>
 
-                    <button class="ui-btn-secondary"
-                            @onclick="CancelAddReward"
-                            type="button">
+                    <button type="button"
+                            class="ui-btn-secondary"
+                            @onclick="CancelAddReward">
                         Zrušit
                     </button>
                 </div>
@@ -117,9 +125,9 @@
         }
         else
         {
-            <button class="ui-btn-secondary mt-4 w-full"
-                    @onclick="() => _isAdding = true"
-                    type="button">
+            <button type="button"
+                    class="ui-btn-secondary mt-4 w-full"
+                    @onclick="() => _isAdding = true">
                 Přidat vlastní odměnu
             </button>
         }
@@ -137,10 +145,22 @@
     private int _newRewardCost = 1;
 
     private List<RewardItem> _rewards = DefaultRewards
-        .Select(x => new RewardItem { Id = x.Id, Name = x.Name, Cost = x.Cost })
+        .Select(reward => new RewardItem
+        {
+            Id = reward.Id,
+            Name = reward.Name,
+            Cost = reward.Cost
+        })
         .ToList();
 
-    private int CurrentBalance => Math.Max(0, TotalLifetimeCredits - _spentCredits);
+    // Dostupné kredity jsou celkové získané kredity mínus kredity utracené za odměny
+    private int CurrentBalance
+    {
+        get
+        {
+            return Math.Max(0, TotalLifetimeCredits - _spentCredits);
+        }
+    }
 
     private static readonly List<RewardItem> DefaultRewards =
     [
@@ -151,24 +171,32 @@
         new() { Id = "5", Name = "Kino nebo akce", Cost = 6 }
     ];
 
+    // Po prvním renderu se načtou utracené kredity a případné vlastní odměny z localStorage
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
+        {
             return;
+        }
 
         var savedSpent = await Storage.GetStringAsync("userSpentCredits");
         var savedRewards = await Storage.GetObjectAsync<List<RewardItem>>("userCustomRewards");
 
         if (int.TryParse(savedSpent, out var parsedSpent))
+        {
             _spentCredits = parsedSpent;
+        }
 
         if (savedRewards is { Count: > 0 })
+        {
             _rewards = savedRewards;
+        }
 
         _isMounted = true;
         StateHasChanged();
     }
 
+    // Koupí odměnu, pokud má uživatel dost kreditů
     private async Task BuyRewardAsync(RewardItem reward)
     {
         if (CurrentBalance < reward.Cost)
@@ -179,27 +207,35 @@
 
         var confirm = await JS.InvokeAsync<bool>(
             "confirm",
-            $"Opravdu chceš koupit odměnu \"{reward.Name}\" za {reward.Cost} kreditů?"
+            $"Opravdu chceš koupit odměnu \"{reward.Name}\" za {FormatCredits(reward.Cost)}?"
         );
 
         if (!confirm)
+        {
             return;
+        }
 
         _spentCredits += reward.Cost;
         await Storage.SetStringAsync("userSpentCredits", _spentCredits.ToString());
     }
 
+    // Přidá novou vlastní odměnu do seznamu
+    // Cena je minimálně 1 kredit, aby nevznikaly nesmyslné nulové nebo záporné ceny
     private async Task AddRewardAsync()
     {
         if (string.IsNullOrWhiteSpace(_newRewardName))
+        {
             return;
+        }
 
-        _rewards.Add(new RewardItem
+        var reward = new RewardItem
         {
             Id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
             Name = _newRewardName.Trim(),
             Cost = Math.Max(1, _newRewardCost)
-        });
+        };
+
+        _rewards.Add(reward);
 
         await Storage.SetObjectAsync("userCustomRewards", _rewards);
 
@@ -208,6 +244,7 @@
         _isAdding = false;
     }
 
+    // Zavře formulář a vyčistí rozepsané hodnoty
     private void CancelAddReward()
     {
         _newRewardName = string.Empty;
@@ -215,26 +252,49 @@
         _isAdding = false;
     }
 
+    // Smaže odměnu podle Id a uloží aktualizovaný seznam do localStorage
     private async Task DeleteRewardAsync(string id)
     {
-        _rewards = _rewards.Where(x => x.Id != id).ToList();
+        _rewards = _rewards
+            .Where(reward => reward.Id != id)
+            .ToList();
+
         await Storage.SetObjectAsync("userCustomRewards", _rewards);
     }
 
+    // Tlačítko Koupit je neaktivní, pokud uživatel nemá dost kreditů
+    private static string GetBuyButtonClass(bool canBuy)
+    {
+        if (canBuy)
+        {
+            return "ui-btn-small ui-btn-primary";
+        }
+
+        return "ui-btn-small ui-btn-secondary cursor-not-allowed opacity-50";
+    }
+
+    // Formátuje slovo kredit podle počtu
     private static string FormatCredits(int credits)
     {
-        return credits switch
+        if (credits == 1)
         {
-            1 => "1 kredit",
-            2 or 3 or 4 => $"{credits} kredity",
-            _ => $"{credits} kreditů"
-        };
+            return "1 kredit";
+        }
+
+        if (credits >= 2 && credits <= 4)
+        {
+            return $"{credits} kredity";
+        }
+
+        return $"{credits} kreditů";
     }
 
     private sealed class RewardItem
     {
         public string Id { get; set; } = string.Empty;
+
         public string Name { get; set; } = string.Empty;
+
         public int Cost { get; set; }
     }
 }

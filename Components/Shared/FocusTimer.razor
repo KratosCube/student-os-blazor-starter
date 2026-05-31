@@ -6,12 +6,7 @@
 <div class="ui-card p-5 @(_mode == TimerMode.Break ? "ui-focus-break" : string.Empty)">
     <div class="mb-4 flex items-center justify-between gap-3">
         <div class="flex items-center gap-2">
-            <svg class="h-5 w-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="13" r="8"></circle>
-                <path d="M12 9v4l2.5 2.5"></path>
-                <path d="M9 3h6"></path>
-            </svg>
-
+            <i class="bi bi-stopwatch text-xl text-indigo-500" aria-hidden="true"></i>
             <h3 class="ui-card-title">
                 @(_mode == TimerMode.Work ? "Focus Mode" : "Pauza")
             </h3>
@@ -51,17 +46,12 @@
                 class="@GetStartPauseButtonClass()">
             @if (_isActive)
             {
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="6" y="5" width="4" height="14" rx="1"></rect>
-                    <rect x="14" y="5" width="4" height="14" rx="1"></rect>
-                </svg>
+                <i class="bi bi-pause-fill text-xl" aria-hidden="true"></i>
                 <span>Pauza</span>
             }
             else
             {
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z"></path>
-                </svg>
+                <i class="bi bi-play-fill text-xl" aria-hidden="true"></i>
                 <span>Start</span>
             }
         </button>
@@ -69,10 +59,7 @@
         <button @onclick="ResetTimerAsync"
                 class="ui-icon-btn"
                 aria-label="Resetovat timer">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 12a9 9 0 1 0 3-6.7"></path>
-                <path d="M3 3v6h6"></path>
-            </svg>
+            <i class="bi bi-arrow-counterclockwise text-lg" aria-hidden="true"></i>        
         </button>
     </div>
 
@@ -100,6 +87,8 @@
     private readonly int _pauseTime = 5;
     private readonly int _mainTime = 25;
 
+    // Po prvním renderu se načte uložený předmět a běžící timer
+    // Timer se obnovuje podle cílového času
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
@@ -137,6 +126,7 @@
         StateHasChanged();
     }
 
+    // Reaguje na změnu vybraného předmětu v selectu
     private async Task OnSubjectChanged(ChangeEventArgs e)
     {
         var raw = e.Value?.ToString();
@@ -161,6 +151,8 @@
         }
     }
 
+    // Spustí nebo pozastaví timer
+    // Při startu se uloží cílový čas, podle kterého se potom počítá zbývající čas
     private async Task ToggleTimerAsync()
     {
         if (!_isActive)
@@ -193,6 +185,7 @@
         StateHasChanged();
     }
 
+    // Reset zastaví timer a vrátí čas podle aktuálního režimu
     private async Task ResetTimerAsync()
     {
         _isActive = false;
@@ -225,6 +218,7 @@
         StateHasChanged();
     }
 
+    // Spustí interní ticker
     private void StartTicker()
     {
         StopTicker();
@@ -233,6 +227,8 @@
         _ = RunTickerAsync(_tickerCts.Token);
     }
 
+    // PeriodicTimer tiká častěji než jednou za sekundu,
+    // aby se UI aktualizovalo plynule a nepřeskakovalo po dvou sekundách
     private async Task RunTickerAsync(CancellationToken cancellationToken)
     {
         using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(250));
@@ -246,15 +242,19 @@
         }
         catch (OperationCanceledException)
         {
+          // Timer byl zastaven ručně
         }
         catch (ObjectDisposedException)
         {
+          // Komponenta už může být zničená
         }
         catch (InvalidOperationException)
         {
+          // Blazor circuit už nemusí být dostupný
         }
     }
 
+    // Zastaví aktuální ticker a uvolní CancellationTokenSource
     private void StopTicker()
     {
         if (_tickerCts is null)
@@ -272,6 +272,7 @@
         _tickerCts = null;
     }
 
+    // Jeden tick timeru
     private async Task TickAsync()
     {
         if (!_isActive || _targetUnixMs is null)
@@ -298,6 +299,7 @@
         StateHasChanged();
     }
 
+    // Dokončení timeru
     private async Task FinishTimerAsync()
     {
         if (_finishing)
@@ -355,6 +357,7 @@
         }
     }
 
+    // Pokusí se přehrát krátké pípnutí po doběhnutí timeru
     private async Task TryPlayBeepAsync()
     {
         try
@@ -372,6 +375,7 @@
         }
     }
 
+    // Zobrazí jednoduchý alert podle toho, který režim právě skončil
     private async Task TryShowFinishAlertAsync(TimerMode finishedMode)
     {
         try
@@ -394,6 +398,7 @@
         }
     }
 
+    // Vrací text alertu po skončení práce nebo pauzy
     private static int GetRemainingSeconds(long targetUnixMs)
     {
         var remainingMs = targetUnixMs - DateTimeOffset.Now.ToUnixTimeMilliseconds();
@@ -404,6 +409,7 @@
         return (int)Math.Ceiling(remainingMs / 1000d);
     }
 
+    // Vrací výchozí délku aktuálního režimu v sekundách
     private int GetDefaultSeconds()
     {
         return _mode == TimerMode.Work
@@ -419,6 +425,7 @@
         return $"{minutes:00}:{restSeconds:00}";
     }
 
+    // Vrací styl hlavního tlačítka podle aktuálního stavu timeru
     private string GetStartPauseButtonClass()
     {
         if (_isActive)

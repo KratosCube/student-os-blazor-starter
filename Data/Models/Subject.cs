@@ -10,6 +10,7 @@ public class Subject
     [StringLength(50, MinimumLength = 2, ErrorMessage = "Název musí mít 2 až 50 znaků.")]
     public string Name { get; set; } = string.Empty;
 
+    // Barva předmětu se používá v grafech, kartách a přehledech
     [Required]
     [RegularExpression("^#([A-Fa-f0-9]{6})$", ErrorMessage = "Barva musí být validní HEX kód.")]
     public string Color { get; set; } = "#6366f1";

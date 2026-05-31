@@ -3,43 +3,57 @@
 
 @if (_loaded)
 {
+    @*
+        GoalTracker zobrazuje dnešní odstudovaný čas, denní cíl a kredity.
+        Nastavení cíle a poměru kreditů se ukládá do localStorage.
+    *@
     <div class="ui-card p-5">
         <div class="mb-4 flex items-start justify-between">
             <div class="flex items-center gap-2">
-                <svg class="h-5 w-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="8" r="6"></circle>
-                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
-                </svg>
+                <i class="bi bi-award text-xl text-amber-400" aria-hidden="true"></i>
                 <h3 class="ui-card-title">Denní progress</h3>
             </div>
 
-            <button @onclick="() => _showSettings = !_showSettings"
-        class="ui-settings-btn"
-        title="Nastavení cílů"
-        aria-label="Nastavení cílů">
-    <span aria-hidden="true" class="text-base leading-none">⚙</span>
-</button>
+            <button type="button"
+                    class="ui-settings-btn"
+                    title="Nastavení cílů"
+                    aria-label="Nastavení cílů"
+                    @onclick="ToggleSettings">
+                <i class="bi bi-sliders" aria-hidden="true"></i>
+            </button>
         </div>
 
         @if (_showSettings)
         {
-            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+            @*
+                Nastavení umožňuje změnit denní studijní cíl a poměr pro výpočet kreditů.
+                Hodnoty se po uložení zachovají i po obnovení stránky.
+            *@
+            <div class="ui-settings-panel">
                 <div class="space-y-4">
                     <div>
                         <label class="ui-label">Denní cíl (hodiny)</label>
-                        <input type="number" min="1" max="24"
+
+                        <input type="number"
+                               min="1"
+                               max="24"
                                @bind="_goalHours"
                                class="ui-input" />
                     </div>
 
                     <div>
                         <label class="ui-label">1 kredit za (minut)</label>
-                        <input type="number" min="5" max="600"
+
+                        <input type="number"
+                               min="5"
+                               max="600"
                                @bind="_minutesPerCredit"
                                class="ui-input" />
                     </div>
 
-                    <button @onclick="SaveSettingsAsync" class="ui-btn-primary w-full">
+                    <button type="button"
+                            class="ui-btn-primary w-full"
+                            @onclick="SaveSettingsAsync">
                         Uložit
                     </button>
                 </div>
@@ -47,6 +61,7 @@
         }
         else
         {
+            
             <div class="mb-4 flex items-end justify-between">
                 <div>
                     <p class="ui-text-helper">Dnes</p>
@@ -64,48 +79,51 @@
             </div>
 
             <div class="mb-5">
-                <div class="h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                    <div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+                <div class="ui-progress-bar-track">
+                    <div class="ui-progress-bar-fill"
                          style="width:@($"{ProgressPercent}%")">
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-               <button type="button"
-        class="ui-progress-card ui-progress-card-warning text-left"
-        title="Přejít na reward shop"
-        @onclick="GoToRewardShop">
-    <div>
-        <p class="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">
-            Kredity
-        </p>
-
-        <p class="mt-2 text-3xl font-bold tracking-tight text-amber-800 dark:text-amber-200">
-            @Credits
-        </p>
-    </div>
-
-    <p class="text-sm leading-5 text-amber-700/80 dark:text-amber-300/80">
-        Otevřít odměny
-    </p>
-</button>                <div class="ui-progress-card ui-progress-card-primary">
+                <button type="button"
+                        class="ui-progress-card ui-progress-card-warning text-left"
+                        title="Přejít na reward shop"
+                        @onclick="GoToRewardShop">
                     <div>
-                        <p class="text-xs font-medium uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+                        <p class="ui-progress-card-label-warning">
+                            Kredity
+                        </p>
+
+                        <p class="ui-progress-card-value-warning">
+                            @Credits
+                        </p>
+                    </div>
+
+                    <p class="ui-progress-card-text-warning">
+                        Otevřít odměny
+                    </p>
+                </button>
+
+                <div class="ui-progress-card ui-progress-card-primary">
+                    <div>
+                        <p class="ui-progress-card-label-primary">
                             Další za
                         </p>
 
                         <div class="mt-2 flex items-baseline gap-1 whitespace-nowrap">
-                            <span class="text-3xl font-bold tracking-tight text-indigo-800 dark:text-indigo-200">
+                            <span class="ui-progress-card-value-primary">
                                 @MinutesToNext
                             </span>
+
                             <span class="text-lg font-semibold text-indigo-700 dark:text-indigo-300">
                                 m
                             </span>
                         </div>
                     </div>
 
-                    <p class="text-sm leading-5 text-indigo-700/80 dark:text-indigo-300/80">
+                    <p class="ui-progress-card-text-primary">
                         Do dalšího kreditu
                     </p>
                 </div>
@@ -122,7 +140,8 @@
     private int _minutesPerCredit = 45;
     private bool _showSettings;
     private bool _loaded;
-
+    
+    // Po prvním vykreslení se načte uložené nastavení denního cíle a kreditů
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
@@ -141,6 +160,7 @@
         StateHasChanged();
     }
 
+    // Uloží denní cíl a poměr kreditů do localStorage
     private async Task SaveSettingsAsync()
     {
         await Storage.SetStringAsync("userGoalHours", _goalHours.ToString(System.Globalization.CultureInfo.InvariantCulture));
@@ -153,9 +173,51 @@
         Navigation.NavigateTo("/stats#reward-shop");
     }
 
-    private int GoalMinutes => (int)(_goalHours * 60);
-    private double ProgressPercent => Math.Min(GoalMinutes == 0 ? 0 : (TodayMinutes / (double)GoalMinutes) * 100, 100);
-    private int Credits => _minutesPerCredit <= 0 ? 0 : TodayMinutes / _minutesPerCredit;
+    // Otevře nebo zavře formulář s nastavením.
+    private void ToggleSettings()
+    {
+        _showSettings = !_showSettings;
+    }
+
+
+
+    // Denní cíl převod z hodin na minuty.
+    private int GoalMinutes
+    {
+        get
+        {
+            return (int)(_goalHours * 60);
+        }
+    } 
+
+    private double ProgressPercent
+    {
+        get
+        {
+            if (GoalMinutes == 0)
+            {
+                return 0;
+            }
+
+            var percent = (TodayMinutes / (double)GoalMinutes) * 100;
+
+            return Math.Min(percent, 100);
+        }
+    }
+    
+    private int Credits
+    {
+        get
+        {
+            if (_minutesPerCredit <= 0)
+            {
+                return 0;
+            }
+
+            return TodayMinutes / _minutesPerCredit;
+        }
+    }
+
     private int MinutesToNext
     {
         get
@@ -167,10 +229,28 @@
                 return _minutesPerCredit;
 
             var remainder = TodayMinutes % _minutesPerCredit;
-            return remainder == 0 ? 0 : _minutesPerCredit - remainder;
+            if (remainder == 0)
+            {
+                return 0;
+            }
+
+            return _minutesPerCredit - remainder;
         }
     }
 
-    private int Hours => TodayMinutes / 60;
-    private int Minutes => TodayMinutes % 60;
+    private int Hours
+    {
+        get
+        {
+            return TodayMinutes / 60;
+        }
+    }
+
+    private int Minutes
+    {
+        get
+        {
+            return TodayMinutes % 60;
+        }
+    }
 }

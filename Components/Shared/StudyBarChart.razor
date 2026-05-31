@@ -1,5 +1,8 @@
 @using StudentOs.Blazor.Services
-
+@*
+    StudyBarChart je vlastní komponenta pro vykreslení sloupcového grafu.
+    Používá se na Dashboardu a ve Stats pro zobrazení odstudovaného času.
+*@
 <div class="ui-card p-6">
     <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div class="min-w-0">
@@ -33,6 +36,10 @@
         }
         else
         {
+          @*
+                Sloupce jsou vykreslené pomocí CSS gridu.
+                Počet sloupců a mezery se dopočítávají podle množství položek v grafu
+            *@
             <div class="grid items-end" style="@GridStyle">
                 @foreach (var item in Items)
                 {
@@ -91,6 +98,7 @@
     [Parameter]
     public RenderFragment? HeaderActions { get; set; }
 
+    // Graf nemá co vykreslit, pokud neobsahuje žádné položky
     private int MaxValue => Math.Max(Items.Count == 0 ? 0 : Items.Max(x => x.TotalValue), 1);
 
     private string GridStyle
@@ -104,19 +112,41 @@
         }
     }
 
-    private string BarMaxWidth => Items.Count switch
+    private string BarMaxWidth
     {
-        > 24 => "26px",
-        > 14 => "34px",
-        _ => "50px"
-    };
+        get
+        {
+            if (Items.Count > 24)
+            {
+                return "26px";
+            }
 
-    private string LabelFontSize => Items.Count switch
+            if (Items.Count > 14)
+            {
+                return "34px";
+            }
+
+            return "50px";
+        }
+    }
+
+   private string LabelFontSize
     {
-        > 24 => "0.68rem",
-        > 14 => "0.75rem",
-        _ => "0.875rem"
-    };
+        get
+        {
+            if (Items.Count > 24)
+            {
+                return "0.68rem";
+            }
+
+            if (Items.Count > 14)
+            {
+                return "0.75rem";
+            }
+
+            return "0.875rem";
+        }
+    }
 
     private static string FormatTopValue(int minutes)
     {

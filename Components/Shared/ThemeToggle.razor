@@ -1,34 +1,40 @@
 @inject ThemeService ThemeService
 
 <button @onclick="ToggleAsync"
-        class="inline-flex h-12 w-12 shrink-0 aspect-square items-center justify-center p-0 rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-        title="@(_darkMode ? "Přepnout na světlý režim" : "Přepnout na tmavý režim")"
-        aria-label="@(_darkMode ? "Přepnout na světlý režim" : "Přepnout na tmavý režim")">
-
-    @if (_darkMode)
-    {
-        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4"></circle>
-            <path d="M12 2v2"></path>
-            <path d="M12 20v2"></path>
-            <path d="m4.93 4.93 1.41 1.41"></path>
-            <path d="m17.66 17.66 1.41 1.41"></path>
-            <path d="M2 12h2"></path>
-            <path d="M20 12h2"></path>
-            <path d="m6.34 17.66-1.41 1.41"></path>
-            <path d="m19.07 4.93-1.41 1.41"></path>
-        </svg>
-    }
-    else
-    {
-        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3a6 6 0 1 0 9 9 9 9 0 1 1-9-9z"></path>
-        </svg>
-    }
+        class="inline-flex h-12 w-12 aspect-square shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white p-0 text-slate-600 shadow-sm transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+        title="@ButtonTitle"
+        aria-label="@ButtonTitle">
+    <i class="@ButtonIconClass" aria-hidden="true"></i>
 </button>
 
 @code {
     private bool _darkMode;
+    
+    private string ButtonTitle
+    {
+        get
+        {
+            if (_darkMode)
+            {
+                return "Přepnout na světlý režim";
+            }
+
+            return "Přepnout na tmavý režim";
+        }
+    }
+
+    private string ButtonIconClass
+    {
+        get
+        {
+            if (_darkMode)
+            {
+                return "bi bi-sun text-xl";
+            }
+
+            return "bi bi-moon-stars text-xl";
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
     <title>Student OS</title>
+    <!--  CSS vygenerované z Tailwindu a Styles/input.css. -->
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css" />
     <link rel="stylesheet" href="css/app.css" />
+    
     <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 <body>
+    <!-- Vykreslení aktuální Razor stránky podle URL adresy. -->
     <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
     <script src="js/storage.js"></script>

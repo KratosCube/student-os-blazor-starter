@@ -15,6 +15,10 @@
         </button>
     </div>
 
+    @*
+        Samotné vykreslení grafu řeší komponenta StudyBarChart
+        Tato komponenta pouze vybírá, jaká data se do grafu pošlou.
+    *@
     <StudyBarChart
         Title="@ChartTitle"
         Description="@ChartDescription"
@@ -30,18 +34,44 @@
 
     private ChartMode _mode = ChartMode.Week;
 
-    private string ChartTitle =>
-        _mode == ChartMode.Week
-            ? "Studium za posledních 7 dní"
-            : "Studium podle předmětů";
+   private string ChartTitle
+    {
+        get
+        {
+            if (_mode == ChartMode.Week)
+            {
+                return "Studium za posledních 7 dní";
+            }
 
-    private string ChartDescription =>
-        _mode == ChartMode.Week
-            ? "Přehled vytížení po dnech."
-            : "Přehled celkové investice času po předmětech.";
+            return "Studium podle předmětů";
+        }
+    }
 
-    private List<ChartItemVm> ChartItems =>
-        _mode == ChartMode.Week ? WeeklySeries : SubjectSeries;
+    private string ChartDescription
+    {
+        get
+        {
+            if (_mode == ChartMode.Week)
+            {
+                return "Přehled vytížení po dnech.";
+            }
+
+            return "Přehled celkové investice času po předmětech.";
+        }
+    }
+
+    private List<ChartItemVm> ChartItems
+    {
+        get
+        {
+            if (_mode == ChartMode.Week)
+            {
+                return WeeklySeries;
+            }
+
+            return SubjectSeries;
+        }
+    }
 
     private enum ChartMode
     {
