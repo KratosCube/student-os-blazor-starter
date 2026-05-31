@@ -1,4 +1,6 @@
+@using System.Globalization
 @using StudentOs.Blazor.Services
+
 @*
     StudyBarChart je vlastní komponenta pro vykreslení sloupcového grafu.
     Používá se na Dashboardu a ve Stats pro zobrazení odstudovaného času.
@@ -36,7 +38,7 @@
         }
         else
         {
-          @*
+            @*
                 Sloupce jsou vykreslené pomocí CSS gridu.
                 Počet sloupců a mezery se dopočítávají podle množství položek v grafu
             *@
@@ -44,8 +46,8 @@
                 @foreach (var item in Items)
                 {
                     var heightPercent = MaxValue == 0
-                        ? 0
-                        : (item.TotalValue / (double)MaxValue) * 100;
+                    ? 0
+                    : (item.TotalValue / (double)MaxValue) * 100;
 
                     var finalHeight = Math.Max(heightPercent, item.TotalValue > 0 ? 8 : 0);
 
@@ -60,15 +62,15 @@
                         </div>
 
                         <div class="flex h-[210px] items-end justify-center">
-                            <div class="ui-chart-bar" style="height:@($"{finalHeight}%"); max-width:@BarMaxWidth;">
+                            <div class="ui-chart-bar" style="@GetBarStyle(finalHeight)">
                                 @foreach (var segment in item.Segments)
                                 {
                                     var segmentHeight = item.TotalValue == 0
-                                        ? 0
-                                        : (segment.Value / (double)item.TotalValue) * 100;
+                                    ? 0
+                                    : (segment.Value / (double)item.TotalValue) * 100;
 
                                     <div class="ui-chart-segment"
-                                         style="height:@($"{segmentHeight}%"); background-color:@segment.Color"
+                                         style="@GetSegmentStyle(segmentHeight, segment.Color)"
                                          title="@segment.Label: @segment.Value min">
                                     </div>
                                 }
@@ -130,7 +132,7 @@
         }
     }
 
-   private string LabelFontSize
+    private string LabelFontSize
     {
         get
         {
@@ -146,6 +148,21 @@
 
             return "0.875rem";
         }
+    }
+
+    private string GetBarStyle(double heightPercent)
+    {
+        return $"height:{FormatCssPercent(heightPercent)}; max-width:{BarMaxWidth};";
+    }
+
+    private static string GetSegmentStyle(double heightPercent, string color)
+    {
+        return $"height:{FormatCssPercent(heightPercent)}; background-color:{color};";
+    }
+
+    private static string FormatCssPercent(double value)
+    {
+        return value.ToString("0.###", CultureInfo.InvariantCulture) + "%";
     }
 
     private static string FormatTopValue(int minutes)
