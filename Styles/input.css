@@ -51,7 +51,7 @@
 
   --notes-line-color: #334155;
 }
-
+/* Základní styly stránky */
 html,
 body {
   min-height: 100%;
@@ -64,6 +64,7 @@ body {
 }
 
 @layer components {
+  /* Karty, položky seznamů a prázdné stavy */
   .ui-card {
     background-color: var(--card);
     color: var(--card-foreground);
@@ -95,6 +96,7 @@ body {
     @apply rounded-xl px-4 py-10 text-center text-sm;
   }
 
+  /* Texty a nadpisy */
   .ui-eyebrow {
     color: var(--primary);
     @apply text-[11px] font-semibold uppercase tracking-[0.22em];
@@ -140,6 +142,7 @@ body {
     @apply text-sm font-medium text-amber-600 dark:text-rose-400;
   }
 
+  /* Formulářové prvky */
   .ui-label {
     @apply mb-2 block text-sm font-medium;
   }
@@ -204,6 +207,7 @@ body {
     @apply mt-3 text-sm leading-6;
   }
 
+  /* Tlačítka */
   .ui-btn-primary {
     background-color: var(--primary);
     color: var(--primary-foreground);
@@ -242,6 +246,7 @@ body {
     @apply inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-200 text-slate-700 transition-colors hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600;
   }
 
+  /* Štítky a upozornění */
   .ui-badge {
     @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
   }
@@ -270,6 +275,7 @@ body {
     @apply rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-900/20 dark:text-rose-300;
   }
 
+  /* Navigace */
   .nav-item {
     @apply flex h-11 items-center gap-3 rounded-xl px-4 text-sm font-medium transition-colors text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/70;
   }
@@ -282,6 +288,7 @@ body {
    @apply bg-indigo-700 text-white dark:bg-indigo-500 dark:text-white;
   }
 
+  /* Dialogová okna */
   .ui-modal-backdrop {
     @apply fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4;
   }
@@ -290,6 +297,7 @@ body {
     @apply w-full max-w-2xl p-6;
   }
 
+  /* Focus timer */
   .ui-focus-break {
     @apply border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-900/20;
   }
@@ -319,6 +327,7 @@ body {
     @apply cursor-not-allowed bg-slate-300 text-slate-500 dark:bg-slate-700 dark:text-slate-400;
   }
 
+  /* Grafy */
   .ui-chart-area {
     @apply w-full overflow-hidden rounded-xl bg-slate-100 px-4 py-5 dark:bg-slate-950;
   }
@@ -340,6 +349,7 @@ body {
     @apply mt-3 truncate text-center font-medium text-slate-700 dark:text-slate-200;
   }
 
+  /* Nastavení a výběr týdne */
   .ui-settings-btn {
   @apply inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-500 dark:hover:bg-slate-800 dark:hover:text-indigo-300;
   }
@@ -362,6 +372,7 @@ body {
   @apply cursor-pointer;
 }
 
+/* Výběr barvy předmětu */
 .ui-color-option {
   @apply cursor-pointer rounded-full p-1 transition-all;
 }
@@ -382,6 +393,7 @@ body {
   @apply flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-900 shadow-sm;
 }
 
+/* Denní progres */
 .ui-progress-card {
   @apply flex min-h-[162px] w-full flex-col justify-between rounded-xl border p-4 transition-colors;
 }
@@ -433,6 +445,8 @@ body {
 .ui-settings-panel {
   @apply rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900;
 }
+
+/* Pitný režim */
 .ui-hydration-glass {
     position: relative;
     width: 6rem;
@@ -563,7 +577,7 @@ body {
   }
 }
 
-/* Animace pro hladinu vody v HydrationTrackeru. */
+/* Animace pro hladinu vody v HydrationTracker */
 @keyframes hydration-wave {
   0% {
     transform: translateX(0) rotate(0deg);
@@ -592,6 +606,7 @@ body {
   }
 }
 
+/* Rychlé poznámky */
 .notes-lines {
   background-image: repeating-linear-gradient(
     transparent,

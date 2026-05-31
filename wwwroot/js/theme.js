@@ -1,4 +1,5 @@
 (function () {
+  // Vrátí uložený režim vzhledu
   function getPreferredTheme() {
     const saved = localStorage.getItem("theme");
     if (saved === "dark" || saved === "light") {
@@ -10,6 +11,7 @@
       : "light";
   }
 
+  // Aplikuje theme do HTML elementu
   function applyTheme(theme) {
     const root = document.documentElement;
 

@@ -15,6 +15,7 @@
     return audioContext;
   }
 
+  // Pokud je AudioContext pozastavený, pokusíme se ho znovu spustit
   async function resumeContext(context) {
     if (!context) {
       return false;
@@ -27,6 +28,7 @@
     return context.state === "running";
   }
 
+  // Funkce dostupné pro Blazor přes FocusTimer
   window.appSound = {
     unlock: async function () {
       try {

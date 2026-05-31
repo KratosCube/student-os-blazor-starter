@@ -1,3 +1,4 @@
+// Helper pro rychlé poznámky
 window.appNotes = {
   autoGrow: function (element) {
     if (!element) return;
