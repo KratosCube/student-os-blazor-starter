@@ -93,6 +93,7 @@ else
             </div>
 
             <div class="ui-card h-fit p-6">
+                @* Nadpis formuláře se změní podle toho, jestli uživatel přidává novou session nebo upravuje existující. *@
                 <h3 class="ui-section-title">@(_isEditingSession ? "Upravit studijní session" : "Ruční záznam studia")</h3>
 
                 <EditForm Model="_sessionForm" OnValidSubmit="SaveSessionAsync" class="mt-6 space-y-4">
@@ -146,6 +147,7 @@ else
                           </p>
                     }
 
+                    @* Tlačítka formuláře se změní podle toho, jestli se session ukládá poprvé nebo se ukládají její úpravy. *@
                     <div class="flex gap-3">
                         <button type="submit" class="ui-btn-primary">
                             @(_isEditingSession ? "Uložit změny" : "Uložit session")
@@ -238,6 +240,7 @@ else
                                         }
                                         else
                                         {
+                                            @* Zobrazuje celou historii session místo původního omezení jen na posledních 10 záznamů. *@
                                             @foreach (var session in subject.Sessions)
                                             {
                                                 <div class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
@@ -251,6 +254,7 @@ else
                                                             </p>
                                                         </div>
 
+                                                        @* Akce u session umožňují načíst záznam do formuláře nebo ho smazat. *@
                                                         <div class="flex gap-2">
                                                             <button type="button" class="ui-btn-small ui-btn-secondary" @onclick="() => StartEditSession(session)">
                                                                 Upravit
