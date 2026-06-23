@@ -67,6 +67,14 @@ Proč: další krok je umožnit opravy nebo mazání chybně zadaných studijní
 
 Proč: uživatel může opravit nebo smazat chybně zadanou studijní session bez nové stránky a bez snapshotů.
 
+### `Components/Pages/Planner.razor`
+
+- Formulář pro přidání termínu už není pořád vidět na stránce.
+- Formulář se zobrazí až po kliknutí na `Přidat termín` nebo při úpravě existujícího termínu.
+- Když formulář není otevřený, seznam termínů využije celou šířku stránky.
+
+Proč: zadání požadovalo, aby přidání nového záznamu bylo spíš on demand a aby se místo využilo pro zobrazení celého seznamu.
+
 ### `Components/Pages/Dashboard.razor`
 
 - `FocusTimer` dostává jen nearchivované předměty.
