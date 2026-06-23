@@ -166,8 +166,9 @@
                                             @(exam.Type == "confirmed" ? "Potvrzeno" : "Možný")
                                         </span>
 
+                                        @* Stav říká, jestli je student na termín přihlášený, nebo už na něm byl. *@
                                         <span class="ui-badge @(exam.IsDone ? "ui-badge-success" : "ui-badge-warning")">
-                                            @(exam.IsDone ? "Hotovo" : "Aktivní")
+                                            @(exam.IsDone ? "Absolvováno" : "Přihlášen")
                                         </span>
                                     </div>
 
@@ -181,7 +182,7 @@
                                         </button>
 
                                         <button class="ui-btn-small ui-btn-secondary w-full" @onclick="() => ToggleAsync(exam.Id)">
-                                            Přepnout stav
+                                            @(exam.IsDone ? "Vrátit na přihlášen" : "Označit absolvováno")
                                         </button>
 
                                         <button class="ui-btn-danger w-full" @onclick="() => DeleteAsync(exam.Id)">
@@ -326,7 +327,7 @@
         ResetForm(keepMessage: true);
     }
 
-    // Přepne termín mezi aktivním a hotovým stavem
+    // Přepne termín mezi stavem přihlášeno a absolvováno
     private async Task ToggleAsync(int id)
     {
         await ExamService.ToggleAsync(id);
