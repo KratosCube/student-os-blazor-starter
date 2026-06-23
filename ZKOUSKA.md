@@ -73,6 +73,12 @@ Proč: uživatel může opravit nebo smazat chybně zadanou studijní session be
 
 Proč: archivovaný předmět už nemá jít vybrat pro nové měření studia.
 
+## Kdyby zbyl čas
+
+- Přidat potvrzovací dialog před archivací předmětu a před smazáním studijní session.
+
+Proč: aktuální řešení funguje, ale potvrzení by snížilo riziko omylem kliknutého smazání.
+
 ## Poznámka
 
 Tahle varianta nepřidává snapshoty do `StudySession`. Je jednodušší: předmět zůstává v databázi, jen se skryje z aktivního UI.
