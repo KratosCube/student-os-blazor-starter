@@ -14,10 +14,11 @@
     </section>
 
     @*
-        Levý sloupec obsahuje formulář pro vytvoření nebo úpravu termínu
-        Pravý sloupec zobrazuje všechny uložené termíny.
+        Formulář se zobrazuje jen při přidání nebo úpravě termínu, aby seznam mohl využít celou šířku.
     *@
-    <div class="grid items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+    <div class="@(_showForm || _isEditing ? "grid items-start gap-6 xl:grid-cols-[360px_minmax(0,1fr)]" : "grid items-start gap-6")">
+        @if (_showForm || _isEditing)
+        {
         <div class="ui-card h-fit p-6">
             <div class="mb-6">
                 <h3 class="ui-section-title">@(_isEditing ? "Upravit termín" : "Přidat nový termín")</h3>
@@ -95,14 +96,31 @@
                             Zrušit editaci
                         </button>
                     }
+                    else
+                    {
+                        <button type="button" class="ui-btn-secondary" @onclick="CancelCreate">
+                            Zavřít formulář
+                        </button>
+                    }
                 </div>
             </EditForm>
         </div>
+        }
 
         <div class="min-w-0">
             <div class="ui-card w-full p-6">
-                <div class="mb-5">
+                @*
+                    Tlačítko otevře formulář pro nový termín až na vyžádání.
+                *@
+                <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
                     <h3 class="ui-section-title">Tabulka termínů</h3>
+
+                    @if (!_showForm && !_isEditing)
+                    {
+                        <button type="button" class="ui-btn-primary" @onclick="StartCreate">
+                            Přidat termín
+                        </button>
+                    }
                 </div>
 
                 @if (_exams.Count == 0)
@@ -192,6 +210,7 @@
     private List<Exam> _exams = new();
 
     private bool _isEditing;
+    private bool _showForm;
     private string? _message;
     private bool _messageSuccess;
     private string? _dateError;
@@ -232,6 +251,7 @@
         }
 
         _isEditing = true;
+        _showForm = true;
         _form.Id = entity.Id;
         _form.SubjectId = entity.SubjectId;
         _form.Date = entity.Date;
@@ -330,6 +350,13 @@
         ApplyEditState();
     }
 
+    // Otevře formulář pro nový termín až na vyžádání
+    private void StartCreate()
+    {
+        ResetForm();
+        _showForm = true;
+    }
+
     // Přepne stránku do režimu editace pomocí query parametru
     private void StartEdit(int id)
     {
@@ -339,6 +366,11 @@
     private void CancelEdit()
     {
         Navigation.NavigateTo("/planner", forceLoad: false);
+        ResetForm();
+    }
+
+    private void CancelCreate()
+    {
         ResetForm();
     }
 
@@ -368,6 +400,7 @@
     private void ResetForm(bool keepMessage = false)
     {
         _isEditing = false;
+        _showForm = false;
 
         _form.Id = null;
         _form.SubjectId = null;
