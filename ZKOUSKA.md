@@ -52,6 +52,12 @@ Proč: termíny archivovaného předmětu už nemají být v dashboardu jako akt
 
 Proč: Planner nemá po archivaci předmětu dál zobrazovat jeho termíny jako běžné aktivní záznamy.
 
+### `Services/StudySessionService.cs`
+
+- Přidány metody `UpdateAsync` a `DeleteAsync` pro úpravu a mazání jednotlivých studijních session.
+
+Proč: další krok je umožnit opravy nebo mazání chybně zadaných studijních záznamů.
+
 ### `Components/Pages/Dashboard.razor`
 
 - `FocusTimer` dostává jen nearchivované předměty.
