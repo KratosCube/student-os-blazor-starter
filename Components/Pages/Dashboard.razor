@@ -62,7 +62,7 @@ else
         *@
         <section class="grid items-start gap-5 xl:grid-cols-[260px,1fr]">
             <div class="space-y-5">
-                <FocusTimer Subjects="_vm.Subjects" />
+                <FocusTimer Subjects="@ActiveSubjects" />
                 <GoalTracker TodayMinutes="_vm.TodayTotalMinutes" />
                 <HydrationTracker />
             </div>
@@ -154,16 +154,26 @@ else
 
 @code {
     private DashboardVm? _vm;
-
     private readonly System.Globalization.CultureInfo _cs = new("cs-CZ");
 
-    // Při načtení stránky se získají všechna data připravená pro Dashboard
     protected override async Task OnInitializedAsync()
     {
         _vm = await DashboardService.GetDashboardAsync();
     }
 
-    // Spojí dnešní termíny a termíny z následujících 14 dnů
+    private List<Subject> ActiveSubjects
+    {
+        get
+        {
+            if (_vm is null)
+            {
+                return new List<Subject>();
+            }
+
+            return _vm.Subjects.Where(x => !x.IsArchived).ToList();
+        }
+    }
+
     private IEnumerable<Exam> DashboardExams
     {
         get
@@ -173,34 +183,16 @@ else
                 return Enumerable.Empty<Exam>();
             }
 
-            return _vm.TodayExams
-                .Concat(_vm.UpcomingExams)
-                .OrderBy(exam => exam.Date);
+            return _vm.TodayExams.Concat(_vm.UpcomingExams).Take(6);
         }
     }
 
-    // Počet aktivních termínů zobrazených v kartě Nejbližší termíny
     private int DashboardExamCount
     {
         get
         {
-            if (_vm is null)
-            {
-                return 0;
-            }
-
-            return _vm.TodayExams.Count + _vm.UpcomingExams.Count;
+            return DashboardExams.Count();
         }
-    }
-
-    private static string GetDateBadgeClass(DateTime date)
-    {
-        if (date.Date == DateTime.Now.Date)
-        {
-            return "ui-badge ui-badge-warning";
-        }
-
-        return "ui-badge ui-badge-primary";
     }
 
     private static string FormatMinutes(int totalMinutes)
@@ -211,25 +203,42 @@ else
         return $"{hours}h {minutes}m";
     }
 
-   private static string FormatDaysUntil(DateTime date)
+    private static string FormatDaysUntil(DateTime date)
     {
-        var days = (date.Date - DateTime.Now.Date).Days;
+        var difference = (date.Date - DateTime.Now.Date).Days;
 
-        if (days <= 0)
+        if (difference == 0)
         {
             return "Dnes";
         }
 
-        if (days == 1)
+        if (difference == 1)
         {
             return "Zítra";
         }
 
-        if (days >= 2 && days <= 4)
+        if (difference > 1)
         {
-            return $"Za {days} dny";
+            return $"Za {difference} dny";
         }
 
-        return $"Za {days} dní";
+        return "Po termínu";
+    }
+
+    private static string GetDateBadgeClass(DateTime date)
+    {
+        var difference = (date.Date - DateTime.Now.Date).Days;
+
+        if (difference == 0)
+        {
+            return "ui-badge ui-badge-warning";
+        }
+
+        if (difference < 0)
+        {
+            return "ui-badge ui-badge-neutral";
+        }
+
+        return "ui-badge ui-badge-primary";
     }
 }
