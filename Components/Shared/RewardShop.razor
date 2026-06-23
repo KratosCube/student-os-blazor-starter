@@ -19,9 +19,15 @@
                 </h3>
             </div>
 
-            <span class="ui-badge ui-badge-primary">
-                @FormatCredits(CurrentBalance)
-            </span>
+            <div class="text-right">
+                <p class="ui-text-helper mb-2">
+                    Aktuálně dostupné kredity
+                </p>
+
+                <span class="ui-badge ui-badge-primary">
+                    @FormatCredits(CurrentBalance)
+                </span>
+            </div>
         </div>
 
         @if (_rewards.Count == 0)
