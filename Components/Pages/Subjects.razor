@@ -93,7 +93,7 @@ else
             </div>
 
             <div class="ui-card h-fit p-6">
-                <h3 class="ui-section-title">Ruční záznam studia</h3>
+                <h3 class="ui-section-title">@(_isEditingSession ? "Upravit studijní session" : "Ruční záznam studia")</h3>
 
                 <EditForm Model="_sessionForm" OnValidSubmit="SaveSessionAsync" class="mt-6 space-y-4">
                     <DataAnnotationsValidator />
@@ -146,9 +146,18 @@ else
                           </p>
                     }
 
-                    <button type="submit" class="ui-btn-primary">
-                        Uložit session
-                    </button>
+                    <div class="flex gap-3">
+                        <button type="submit" class="ui-btn-primary">
+                            @(_isEditingSession ? "Uložit změny" : "Uložit session")
+                        </button>
+
+                        @if (_isEditingSession)
+                        {
+                            <button type="button" class="ui-btn-secondary" @onclick="CancelSessionEdit">
+                                Zrušit editaci
+                            </button>
+                        }
+                    </div>
                 </EditForm>
             </div>
         </div>
@@ -229,15 +238,29 @@ else
                                         }
                                         else
                                         {
-                                            @foreach (var session in subject.Sessions.Take(10))
+                                            @foreach (var session in subject.Sessions)
                                             {
                                                 <div class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-                                                    <p class="font-medium">
-                                                        @session.CreatedAt.ToString("dd.MM.yyyy H:mm", _cs)
-                                                    </p>
-                                                    <p class="ui-text-secondary">
-                                                        @session.Duration minut
-                                                    </p>
+                                                    <div class="flex flex-wrap items-start justify-between gap-3">
+                                                        <div>
+                                                            <p class="font-medium">
+                                                                @session.CreatedAt.ToString("dd.MM.yyyy H:mm", _cs)
+                                                            </p>
+                                                            <p class="ui-text-secondary">
+                                                                @session.Duration minut
+                                                            </p>
+                                                        </div>
+
+                                                        <div class="flex gap-2">
+                                                            <button type="button" class="ui-btn-small ui-btn-secondary" @onclick="() => StartEditSession(session)">
+                                                                Upravit
+                                                            </button>
+
+                                                            <button type="button" class="ui-btn-danger" @onclick="() => DeleteSessionAsync(session.Id)">
+                                                                Smazat
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             }
                                         }
@@ -277,6 +300,7 @@ else
 
     private bool _loaded;
     private bool _isEditing;
+    private bool _isEditingSession;
 
     private string? _subjectMessage;
     private bool _subjectMessageSuccess;
@@ -413,13 +437,26 @@ else
             return;
         }
 
-        await StudySessionService.AddAsync(new StudySession
+        var session = new StudySession
         {
+            Id = _sessionForm.Id ?? 0,
             SubjectId = _sessionForm.SubjectId.Value,
             Duration = _sessionForm.Duration,
             CreatedAt = createdAt
-        });
+        };
 
+        if (_isEditingSession && _sessionForm.Id is not null)
+        {
+            await StudySessionService.UpdateAsync(session);
+            _sessionMessage = "Studijní session byla upravena.";
+            _sessionMessageSuccess = true;
+
+            await ReloadAsync();
+            ResetSessionForm(keepMessage: true);
+            return;
+        }
+
+        await StudySessionService.AddAsync(session);
         _sessionMessage = "Studijní session byla uložena.";
         _sessionMessageSuccess = true;
 
@@ -443,6 +480,32 @@ else
         ApplyEditState();
     }
 
+    private void StartEditSession(StudySession session)
+    {
+        _isEditingSession = true;
+        _sessionForm.Id = session.Id;
+        _sessionForm.SubjectId = session.SubjectId;
+        _sessionForm.Duration = session.Duration;
+        _sessionDatePart = session.CreatedAt.ToString("yyyy-MM-dd");
+        _sessionTimePart = session.CreatedAt.ToString("HH:mm");
+        _sessionMessage = null;
+        _sessionDateError = null;
+    }
+
+    private async Task DeleteSessionAsync(int id)
+    {
+        await StudySessionService.DeleteAsync(id);
+        await ReloadAsync();
+
+        _sessionMessage = "Studijní session byla smazána.";
+        _sessionMessageSuccess = true;
+
+        if (_sessionForm.Id == id)
+        {
+            ResetSessionForm(keepMessage: true);
+        }
+    }
+
     // Přepne stránku do režimu editace předmětu
     private void StartEdit(int id)
     {
@@ -453,6 +516,11 @@ else
     {
         Navigation.NavigateTo("/subjects", forceLoad: false);
         ResetSubjectForm();
+    }
+
+    private void CancelSessionEdit()
+    {
+        ResetSessionForm();
     }
 
     private void OnSessionDateChanged(ChangeEventArgs e)
@@ -498,6 +566,8 @@ else
 
     private void ResetSessionForm(bool keepMessage = false)
     {
+        _isEditingSession = false;
+        _sessionForm.Id = null;
         _sessionForm.SubjectId = null;
         _sessionForm.Duration = 45;
         _sessionDatePart = DateTime.Now.ToString("yyyy-MM-dd");
@@ -525,6 +595,8 @@ else
 
     private sealed class SessionFormModel
     {
+        public int? Id { get; set; }
+
         [Required(ErrorMessage = "Vyber předmět.")]
         public int? SubjectId { get; set; }
 
