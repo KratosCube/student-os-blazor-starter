@@ -43,8 +43,9 @@ Proč: uživatelsky se předmět chová jako smazaný, ale data v databázi zůs
 
 - Statistiky zůstaly řešené původním stylem přes předměty a jejich session.
 - Do aktivních termínů se nově nezařazují termíny archivovaných předmětů.
+- Služba už nepočítá `TotalLifetimeCredits` pomocí pevné hodnoty `45`.
 
-Proč: termíny archivovaného předmětu už nemají být v dashboardu jako aktivní povinnosti.
+Proč: poměr minut za jeden kredit si uživatel nastavuje v prohlížeči, takže výpočet kreditů nemá být natvrdo v databázové službě.
 
 ### `Services/ExamService.cs`
 
@@ -78,8 +79,10 @@ Proč: zadání požadovalo, aby přidání nového záznamu bylo spíš on dema
 ### `Components/Pages/Stats.razor`
 
 - Karta `Kredity` byla přejmenována na `Získané kredity celkem`.
+- Výpočet získaných kreditů používá nastavení `userRewardRatio` z localStorage.
+- Hodnota se předává i do `RewardShop`.
 
-Proč: tato hodnota ukazuje všechny kredity získané studiem, ne aktuální zůstatek po nákupu odměn.
+Proč: tato hodnota ukazuje všechny kredity získané studiem a musí respektovat nastavení `1 kredit za X minut`.
 
 ### `Components/Shared/RewardShop.razor`
 
