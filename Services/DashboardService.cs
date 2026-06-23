@@ -50,9 +50,6 @@ public class DashboardService
         // Celkový čas za celou dobu používání aplikace
         var lifetimeMinutes = subjects.SelectMany(x => x.Sessions).Sum(x => x.Duration);
 
-        // Převod odstudovaného času na kredity pro reward shop
-        var totalLifetimeCredits = lifetimeMinutes / 45;
-
         // Aktivní termíny jsou ty, které ještě nejsou označené jako hotové a nepatří archivovanému předmětu
         var activeExams = exams
             .Where(x => !x.IsDone && (x.Subject is null || !x.Subject.IsArchived))
@@ -83,7 +80,6 @@ public class DashboardService
             todayTotalMinutes,
             weekTotalMinutes,
             lifetimeMinutes,
-            totalLifetimeCredits,
             weeklySeries,
             last30DaysSeries,
             allTimeSeries,
@@ -219,7 +215,6 @@ public record DashboardVm(
     int TodayTotalMinutes,
     int WeekTotalMinutes,
     int LifetimeMinutes,
-    int TotalLifetimeCredits,
     List<ChartItemVm> WeeklySeries,
     List<ChartItemVm> Last30DaysSeries,
     List<ChartItemVm> AllTimeSeries,
