@@ -6,6 +6,9 @@ namespace StudentOs.Blazor.Services;
 
 public class DashboardService
 {
+    private const string UnknownSubjectName = "Bez předmětu";
+    private const string DefaultSubjectColor = "#6366f1";
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
 
     public DashboardService(IDbContextFactory<AppDbContext> dbFactory)
@@ -18,14 +21,25 @@ public class DashboardService
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
 
-        // Předměty načítám rovnou s aktivními termíny a se studijními session
+        // Aktivní předměty se používají v Dashboardu a FocusTimeru.
         var subjects = await db
-            .Subjects.Include(x => x.Exams.Where(e => !e.IsDone).OrderBy(e => e.Date))
-            .Include(x => x.Sessions)
+            .Subjects.Where(x => !x.IsArchived)
+            .Include(x => x.Exams.Where(e => !e.IsDone).OrderBy(e => e.Date))
             .OrderBy(x => x.Name)
             .ToListAsync();
-        // Úplný seznam termínů
-        var exams = await db.Exams.Include(x => x.Subject).OrderBy(x => x.Date).ToListAsync();
+
+        // Úplný seznam session se načítá přímo, aby statistiky počítaly i archivované předměty.
+        var studySessions = await db
+            .StudySessions.Include(x => x.Subject)
+            .OrderBy(x => x.CreatedAt)
+            .ToListAsync();
+
+        // Termíny archivovaných předmětů se v aktivních přehledech nezobrazují.
+        var exams = await db
+            .Exams.Include(x => x.Subject)
+            .Where(x => x.Subject == null || !x.Subject.IsArchived)
+            .OrderBy(x => x.Date)
+            .ToListAsync();
 
         var now = DateTime.Now;
         var today = now.Date;
@@ -36,19 +50,17 @@ public class DashboardService
         var upcomingLimit = today.AddDays(14);
 
         // Celkový čas odstudovaný dnes
-        var todayTotalMinutes = subjects
-            .SelectMany(x => x.Sessions)
+        var todayTotalMinutes = studySessions
             .Where(x => x.CreatedAt.Date == today)
             .Sum(x => x.Duration);
 
         // Celkový čas za posledních 7 dní včetně dneška
-        var weekTotalMinutes = subjects
-            .SelectMany(x => x.Sessions)
+        var weekTotalMinutes = studySessions
             .Where(x => x.CreatedAt.Date >= sevenDaysAgo)
             .Sum(x => x.Duration);
 
         // Celkový čas za celou dobu používání aplikace
-        var lifetimeMinutes = subjects.SelectMany(x => x.Sessions).Sum(x => x.Duration);
+        var lifetimeMinutes = studySessions.Sum(x => x.Duration);
 
         // Převod odstudovaného času na kredity pro reward shop
         var totalLifetimeCredits = lifetimeMinutes / 45;
@@ -66,13 +78,14 @@ public class DashboardService
             .ToList();
 
         //Series pro grafy
-        var weeklySeries = BuildDailySeries(subjects, sevenDaysAgo, today);
-        var last30DaysSeries = BuildDailySeries(subjects, thirtyDaysAgo, today);
-        var allTimeSeries = BuildAllTimeSeries(subjects);
-        var subjectSeries = BuildSubjectSeries(subjects);
+        var weeklySeries = BuildDailySeries(studySessions, sevenDaysAgo, today);
+        var last30DaysSeries = BuildDailySeries(studySessions, thirtyDaysAgo, today);
+        var allTimeSeries = BuildAllTimeSeries(studySessions);
+        var subjectSeries = BuildSubjectSeries(studySessions);
 
         return new DashboardVm(
             subjects,
+            studySessions,
             exams,
             activeExams,
             todayExams,
@@ -90,7 +103,7 @@ public class DashboardService
 
     // Vytvoří denní graph series pro zadaný rozsah dat
     private static List<ChartItemVm> BuildDailySeries(
-        List<Subject> subjects,
+        List<StudySession> sessions,
         DateTime startDate,
         DateTime endDate
     )
@@ -102,19 +115,14 @@ public class DashboardService
             .Select(index =>
             {
                 var day = startDate.Date.AddDays(index);
-                // Pro daný den se najdou všechny session ze všech předmětů
-                var segments = subjects
-                    .SelectMany(subject =>
-                        subject
-                            .Sessions.Where(session => session.CreatedAt.Date == day)
-                            .Select(session => new
-                            {
-                                subject.Name,
-                                subject.Color,
-                                session.Duration,
-                            })
-                    )
-                    .GroupBy(x => new { x.Name, x.Color })
+                // Pro daný den se najdou všechny session včetně těch z archivovaných předmětů
+                var segments = sessions
+                    .Where(session => session.CreatedAt.Date == day)
+                    .GroupBy(session => new
+                    {
+                        Name = GetSessionSubjectName(session),
+                        Color = GetSessionSubjectColor(session),
+                    })
                     .Select(group => new ChartSegmentVm(
                         group.Key.Name,
                         group.Sum(x => x.Duration),
@@ -129,24 +137,22 @@ public class DashboardService
 
     // Vytvoří graph series za celou dobu
 
-    private static List<ChartItemVm> BuildAllTimeSeries(List<Subject> subjects)
+    private static List<ChartItemVm> BuildAllTimeSeries(List<StudySession> sessions)
     {
-        var sessions = subjects
-            .SelectMany(subject =>
-                subject.Sessions.Select(session => new
-                {
-                    subject.Name,
-                    subject.Color,
-                    session.Duration,
-                    Month = new DateTime(session.CreatedAt.Year, session.CreatedAt.Month, 1),
-                })
-            )
+        var sessionsWithSubjects = sessions
+            .Select(session => new
+            {
+                Name = GetSessionSubjectName(session),
+                Color = GetSessionSubjectColor(session),
+                session.Duration,
+                Month = new DateTime(session.CreatedAt.Year, session.CreatedAt.Month, 1),
+            })
             .ToList();
 
-        if (sessions.Count == 0)
+        if (sessionsWithSubjects.Count == 0)
             return new List<ChartItemVm>();
 
-        return sessions
+        return sessionsWithSubjects
             .GroupBy(x => x.Month)
             .OrderBy(group => group.Key)
             .Select(monthGroup =>
@@ -167,24 +173,49 @@ public class DashboardService
     }
 
     // Vytvoří souhrn studia podle předmětů
-    private static List<ChartItemVm> BuildSubjectSeries(List<Subject> subjects)
+    private static List<ChartItemVm> BuildSubjectSeries(List<StudySession> sessions)
     {
-        return subjects
-            .Select(subject =>
+        return sessions
+            .GroupBy(session => new
             {
-                var totalMinutes = subject.Sessions.Sum(session => session.Duration);
+                Name = GetSessionSubjectName(session),
+                Color = GetSessionSubjectColor(session),
+            })
+            .Select(group =>
+            {
+                var totalMinutes = group.Sum(session => session.Duration);
                 var segments = new List<ChartSegmentVm>();
 
                 if (totalMinutes > 0)
                 {
-                    segments.Add(new ChartSegmentVm(subject.Name, totalMinutes, subject.Color));
+                    segments.Add(new ChartSegmentVm(group.Key.Name, totalMinutes, group.Key.Color));
                 }
 
-                return new ChartItemVm(subject.Name, segments);
+                return new ChartItemVm(group.Key.Name, segments);
             })
             .Where(x => x.TotalValue > 0)
             .OrderByDescending(x => x.TotalValue)
             .ToList();
+    }
+
+    private static string GetSessionSubjectName(StudySession session)
+    {
+        if (!string.IsNullOrWhiteSpace(session.Subject?.Name))
+        {
+            return session.Subject.Name;
+        }
+
+        return UnknownSubjectName;
+    }
+
+    private static string GetSessionSubjectColor(StudySession session)
+    {
+        if (!string.IsNullOrWhiteSpace(session.Subject?.Color))
+        {
+            return session.Subject.Color;
+        }
+
+        return DefaultSubjectColor;
     }
 }
 
@@ -209,6 +240,7 @@ public record ChartSegmentVm(string Label, int Value, string Color);
 // View model pro Dashboard a Stats
 public record DashboardVm(
     List<Subject> Subjects,
+    List<StudySession> StudySessions,
     List<Exam> Exams,
     List<Exam> ActiveExams,
     List<Exam> TodayExams,
