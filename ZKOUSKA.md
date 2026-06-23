@@ -73,8 +73,10 @@ Proč: uživatel může opravit nebo smazat chybně zadanou studijní session be
 - Formulář pro přidání termínu už není pořád vidět na stránce.
 - Formulář se zobrazí až po kliknutí na `Přidat termín` nebo při úpravě existujícího termínu.
 - Když formulář není otevřený, seznam termínů využije celou šířku stránky.
+- Stav `Aktivní / Hotovo` byl v UI přejmenován na `Přihlášen / Absolvováno`.
+- Tlačítko `Přepnout stav` bylo nahrazeno konkrétnější akcí podle aktuálního stavu.
 
-Proč: zadání požadovalo, aby přidání nového záznamu bylo spíš on demand a aby se místo využilo pro zobrazení celého seznamu.
+Proč: stav termínu má lépe odpovídat tomu, jestli je student na termín přihlášený, nebo už na něm byl.
 
 ### `Components/Pages/Stats.razor`
 
@@ -83,6 +85,14 @@ Proč: zadání požadovalo, aby přidání nového záznamu bylo spíš on dema
 - Hodnota se předává i do `RewardShop`.
 
 Proč: tato hodnota ukazuje všechny kredity získané studiem a musí respektovat nastavení `1 kredit za X minut`.
+
+### `Components/Shared/GoalTracker.razor`
+
+- Do nastavení přibylo pole `Kredity za splnění denního cíle`.
+- Hodnota se ukládá do localStorage pod klíčem `userGoalRewardCredits`.
+- Dnešní karta kreditů přičte bonus, pokud je denní cíl splněný.
+
+Proč: výraz `cena za dosažení cíle` byl interpretován jako nastavitelný počet bonusových kreditů za splnění denního cíle.
 
 ### `Components/Shared/RewardShop.razor`
 
@@ -95,6 +105,12 @@ Proč: v reward shopu se zobrazuje použitelný počet kreditů po odečtení kr
 - `FocusTimer` dostává jen nearchivované předměty.
 
 Proč: archivovaný předmět už nemá jít vybrat pro nové měření studia.
+
+### `Properties/launchSettings.json`
+
+- Vývojové spuštění aplikace používá jen `http://localhost:58692` místo kombinace HTTPS a HTTP.
+
+Proč: při lokálním spuštění se tím obejde problém s nedůvěryhodným vývojovým HTTPS certifikátem.
 
 ## Kdyby zbyl čas
 
