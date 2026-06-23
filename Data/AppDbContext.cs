@@ -15,6 +15,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         modelBuilder.Entity<Subject>().Property(x => x.Color).HasDefaultValue("#6366f1");
         modelBuilder.Entity<Subject>().Property(x => x.Name).HasMaxLength(50);
+        modelBuilder.Entity<Subject>().Property(x => x.IsArchived).HasDefaultValue(false);
 
         modelBuilder
             .Entity<Exam>()
