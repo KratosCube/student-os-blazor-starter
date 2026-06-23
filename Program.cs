@@ -33,6 +33,8 @@ using (var scope = app.Services.CreateScope())
     await db.Database.EnsureCreatedAsync();
     // Tato kontrola umožní spustit aplikaci i nad starší lokální databází bez sloupce Note.
     await EnsureExamNoteColumnAsync(db);
+    // Tato kontrola umožní spustit aplikaci i nad starší lokální databází bez sloupce IsArchived.
+    await EnsureSubjectArchiveColumnAsync(db);
     // Pokud je databáze prázdná, vloží se ukázková data.
     if (!db.Subjects.Any())
     {
@@ -296,4 +298,35 @@ static async Task EnsureExamNoteColumnAsync(AppDbContext db)
         await db.Database.ExecuteSqlRawAsync("ALTER TABLE Exams ADD COLUMN Note TEXT");
     }
 }
+
+// Kontroluje existenci sloupce IsArchived v tabulce Subjects a případně ho doplní.
+static async Task EnsureSubjectArchiveColumnAsync(AppDbContext db)
+{
+    var connection = db.Database.GetDbConnection();
+
+    if (connection.State != ConnectionState.Open)
+        await connection.OpenAsync();
+
+    var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    await using (var command = connection.CreateCommand())
+    {
+        command.CommandText = "PRAGMA table_info('Subjects')";
+
+        await using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            columns.Add(reader.GetString(1));
+        }
+    }
+
+    if (!columns.Contains("IsArchived"))
+    {
+        await db.Database.ExecuteSqlRawAsync(
+            "ALTER TABLE Subjects ADD COLUMN IsArchived INTEGER NOT NULL DEFAULT 0"
+        );
+    }
+}
+
 app.Run();
