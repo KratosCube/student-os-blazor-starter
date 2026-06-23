@@ -13,20 +13,27 @@ public class ExamService
         _dbFactory = dbFactory;
     }
 
-    // Načte všechny termíny z databáze a připojí k nim jejich předmět
+    // Načte všechny termíny aktivních předmětů z databáze a připojí k nim jejich předmět
     public async Task<List<Exam>> GetAllAsync()
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
 
-        return await db.Exams.Include(x => x.Subject).OrderBy(x => x.Date).ToListAsync();
+        return await db
+            .Exams.Include(x => x.Subject)
+            .Where(x => x.Subject == null || !x.Subject.IsArchived)
+            .OrderBy(x => x.Date)
+            .ToListAsync();
     }
 
-    // Načte jeden konkrétní termín podle Id
+    // Načte jeden konkrétní termín podle Id, pokud nepatří archivovanému předmětu
     public async Task<Exam?> GetByIdAsync(int id)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
 
-        return await db.Exams.Include(x => x.Subject).FirstOrDefaultAsync(x => x.Id == id);
+        return await db
+            .Exams.Include(x => x.Subject)
+            .Where(x => x.Subject == null || !x.Subject.IsArchived)
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     // Přidá nový termín do databáze
