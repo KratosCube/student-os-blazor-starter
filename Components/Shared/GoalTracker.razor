@@ -5,7 +5,7 @@
 {
     @*
         GoalTracker zobrazuje dnešní odstudovaný čas, denní cíl a kredity.
-        Nastavení cíle a poměru kreditů se ukládá do localStorage.
+        Nastavení cíle, poměru kreditů a bonusu za splnění cíle se ukládá do localStorage.
     *@
     <div class="ui-card p-5">
         <div class="mb-4 flex items-start justify-between">
@@ -26,7 +26,7 @@
         @if (_showSettings)
         {
             @*
-                Nastavení umožňuje změnit denní studijní cíl a poměr pro výpočet kreditů.
+                Nastavení umožňuje změnit denní studijní cíl, poměr pro výpočet kreditů a bonus za splnění cíle.
                 Hodnoty se po uložení zachovají i po obnovení stránky.
             *@
             <div class="ui-settings-panel">
@@ -48,6 +48,17 @@
                                min="5"
                                max="600"
                                @bind="_minutesPerCredit"
+                               class="ui-input" />
+                    </div>
+
+                    @* Bonus určuje, kolik kreditů se přičte po splnění denního cíle. *@
+                    <div>
+                        <label class="ui-label">Kredity za splnění denního cíle</label>
+
+                        <input type="number"
+                               min="0"
+                               max="100"
+                               @bind="_goalRewardCredits"
                                class="ui-input" />
                     </div>
 
@@ -102,7 +113,7 @@
                     </div>
 
                     <p class="ui-progress-card-text-warning">
-                        Otevřít odměny
+                        @CreditDescription
                     </p>
                 </button>
 
@@ -138,6 +149,7 @@
 
     private double _goalHours = 4;
     private int _minutesPerCredit = 45;
+    private int _goalRewardCredits = 1;
     private bool _showSettings;
     private bool _loaded;
     
@@ -149,6 +161,7 @@
 
         var savedGoal = await Storage.GetStringAsync("userGoalHours");
         var savedRatio = await Storage.GetStringAsync("userRewardRatio");
+        var savedGoalReward = await Storage.GetStringAsync("userGoalRewardCredits");
 
         if (double.TryParse(savedGoal, out var goal))
             _goalHours = goal;
@@ -156,15 +169,19 @@
         if (int.TryParse(savedRatio, out var ratio))
             _minutesPerCredit = ratio;
 
+        if (int.TryParse(savedGoalReward, out var goalReward))
+            _goalRewardCredits = Math.Max(0, goalReward);
+
         _loaded = true;
         StateHasChanged();
     }
 
-    // Uloží denní cíl a poměr kreditů do localStorage
+    // Uloží denní cíl, poměr kreditů a bonus za splnění cíle do localStorage
     private async Task SaveSettingsAsync()
     {
         await Storage.SetStringAsync("userGoalHours", _goalHours.ToString(System.Globalization.CultureInfo.InvariantCulture));
         await Storage.SetStringAsync("userRewardRatio", _minutesPerCredit.ToString());
+        await Storage.SetStringAsync("userGoalRewardCredits", Math.Max(0, _goalRewardCredits).ToString());
         _showSettings = false;
     }
 
@@ -190,6 +207,14 @@
         }
     } 
 
+    private bool IsGoalCompleted
+    {
+        get
+        {
+            return GoalMinutes > 0 && TodayMinutes >= GoalMinutes;
+        }
+    }
+
     private double ProgressPercent
     {
         get
@@ -214,7 +239,27 @@
                 return 0;
             }
 
-            return TodayMinutes / _minutesPerCredit;
+            var credits = TodayMinutes / _minutesPerCredit;
+
+            if (IsGoalCompleted)
+            {
+                credits += Math.Max(0, _goalRewardCredits);
+            }
+
+            return credits;
+        }
+    }
+
+    private string CreditDescription
+    {
+        get
+        {
+            if (IsGoalCompleted && _goalRewardCredits > 0)
+            {
+                return $"Včetně bonusu +{_goalRewardCredits}";
+            }
+
+            return "Otevřít odměny";
         }
     }
 
