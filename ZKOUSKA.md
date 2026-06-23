@@ -58,6 +58,15 @@ Proč: Planner nemá po archivaci předmětu dál zobrazovat jeho termíny jako 
 
 Proč: další krok je umožnit opravy nebo mazání chybně zadaných studijních záznamů.
 
+### `Components/Pages/Subjects.razor`
+
+- Seznam studijních session už nepoužívá `Take(10)` a zobrazí celou historii předmětu.
+- U každé session jsou tlačítka `Upravit` a `Smazat`.
+- Stávající formulář pro ruční záznam studia se používá i pro úpravu existující session.
+- Přibyl stav `_isEditingSession`, `SessionFormModel.Id` a malé metody `StartEditSession`, `DeleteSessionAsync`, `CancelSessionEdit`.
+
+Proč: uživatel může opravit nebo smazat chybně zadanou studijní session bez nové stránky a bez snapshotů.
+
 ### `Components/Pages/Dashboard.razor`
 
 - `FocusTimer` dostává jen nearchivované předměty.
