@@ -21,6 +21,33 @@ public class StudySessionService
         await db.SaveChangesAsync();
     }
 
+    // Upraví existující studijní session.
+    public async Task UpdateAsync(StudySession session)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var entity = await db.StudySessions.FirstOrDefaultAsync(x => x.Id == session.Id);
+        if (entity is null)
+            return;
+
+        entity.SubjectId = session.SubjectId;
+        entity.Duration = session.Duration;
+        entity.CreatedAt = session.CreatedAt;
+
+        await db.SaveChangesAsync();
+    }
+
+    // Smaže studijní session podle Id.
+    public async Task DeleteAsync(int id)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var entity = await db.StudySessions.FirstOrDefaultAsync(x => x.Id == id);
+        if (entity is null)
+            return;
+
+        db.StudySessions.Remove(entity);
+        await db.SaveChangesAsync();
+    }
+
     // Vytvoří a uloží novou studijní session podle předmětu a počtu minut
     public async Task LogSessionAsync(int subjectId, int minutes)
     {
