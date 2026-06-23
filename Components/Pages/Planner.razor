@@ -53,10 +53,10 @@
                 </div>
 
                 <div>
-                    <label class="ui-label">Typ termínu</label>
+                    <label class="ui-label">Jistota termínu</label>
                     <InputSelect @bind-Value="_form.Type" class="ui-select">
-                        <option value="confirmed">Potvrzený</option>
-                        <option value="potential">Možný</option>
+                        <option value="confirmed">Pevný termín</option>
+                        <option value="potential">Předběžný termín</option>
                     </InputSelect>
                     <ValidationMessage For="@(() => _form.Type)" />
                 </div>
@@ -162,8 +162,9 @@
                                     </div>
 
                                     <div class="flex flex-wrap gap-2">
+                                        @* Jistota termínu říká, jestli je termín pevný, nebo jen předběžný. *@
                                         <span class="ui-badge ui-badge-neutral">
-                                            @(exam.Type == "confirmed" ? "Potvrzeno" : "Možný")
+                                            @(exam.Type == "confirmed" ? "Pevný termín" : "Předběžný termín")
                                         </span>
 
                                         @* Stav říká, jestli je student na termín přihlášený, nebo už na něm byl. *@
@@ -284,7 +285,7 @@
 
         if (_form.Type is not ("confirmed" or "potential"))
         {
-            _message = "Typ termínu není platný.";
+            _message = "Jistota termínu není platná.";
             _messageSuccess = false;
             return;
         }
@@ -439,7 +440,7 @@
 
         public DateTime Date { get; set; } = DateTime.Now.AddDays(1);
 
-        [Required(ErrorMessage = "Vyber typ termínu.")]
+        [Required(ErrorMessage = "Vyber jistotu termínu.")]
         public string Type { get; set; } = "confirmed";
 
         [Range(15, 480, ErrorMessage = "Délka musí být v rozsahu 15 až 480 minut.")]
