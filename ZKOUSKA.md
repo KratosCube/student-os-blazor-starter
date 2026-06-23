@@ -75,6 +75,18 @@ Proč: uživatel může opravit nebo smazat chybně zadanou studijní session be
 
 Proč: zadání požadovalo, aby přidání nového záznamu bylo spíš on demand a aby se místo využilo pro zobrazení celého seznamu.
 
+### `Components/Pages/Stats.razor`
+
+- Karta `Kredity` byla přejmenována na `Získané kredity celkem`.
+
+Proč: tato hodnota ukazuje všechny kredity získané studiem, ne aktuální zůstatek po nákupu odměn.
+
+### `Components/Shared/RewardShop.razor`
+
+- Zůstatek v reward shopu je nově označený jako `Aktuálně dostupné kredity`.
+
+Proč: v reward shopu se zobrazuje použitelný počet kreditů po odečtení kreditů utracených za odměny.
+
 ### `Components/Pages/Dashboard.razor`
 
 - `FocusTimer` dostává jen nearchivované předměty.
