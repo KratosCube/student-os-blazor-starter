@@ -15,6 +15,9 @@ public class Subject
     [RegularExpression("^#([A-Fa-f0-9]{6})$", ErrorMessage = "Barva musí být validní HEX kód.")]
     public string Color { get; set; } = "#6366f1";
 
+    // Archivovaný předmět se nezobrazuje v aktivních seznamech, ale jeho historie zůstává v databázi
+    public bool IsArchived { get; set; }
+
     public List<Exam> Exams { get; set; } = new();
     public List<StudySession> Sessions { get; set; } = new();
 }
